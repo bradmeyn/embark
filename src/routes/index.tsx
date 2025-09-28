@@ -8,6 +8,7 @@ export const Route = createFileRoute('/')({
 function App() {
   return (
     <main className="min-h-screen">
+      <Header />
       <div className="container mx-auto">
         <div className="mx-auto my-16 max-w-3xl">
           <h1 className="mb-4 text-center font-serif text-8xl font-light">

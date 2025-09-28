@@ -1,20 +1,13 @@
-import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { Link, createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { Building2, Mail } from 'lucide-react'
+
 import type { RegisterCredentials } from '@/schemas/auth'
 import { registerSchema } from '@/schemas/auth'
 import { cn } from '@/lib/utils'
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -37,7 +30,6 @@ export const Route = createFileRoute('/(auth)/register/')({
 
 function RegisterPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const navigate = useNavigate()
 
   const form = useForm<RegisterCredentials>({
     resolver: zodResolver(registerSchema),
@@ -52,7 +44,7 @@ function RegisterPage() {
     },
   })
 
-  function onSubmit(data: RegisterCredentials) {
+  function onSubmit(_data: RegisterCredentials) {
     try {
       setErrorMessage(null)
     } catch (error) {
@@ -68,86 +60,131 @@ function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen ">
-      <main className="container max-w-xl py-12 mx-auto">
-        <Card>
+    <div className="min-h-screen flex">
+      {/* Left Side - Image/Branding */}
+      <div className="hidden lg:flex lg:w-1/2 relative p-4">
+        {/* Background Image with Rounded Borders */}
+        <div className="relative w-full h-full rounded-2xl overflow-hidden ">
+          <img
+            src="/images/locations/nice.png"
+            alt="Travel destination"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
+
+      {/* Right Side - Form */}
+      <div className="flex-1 flex items-center justify-center ">
+        <div className="w-full max-w-md space-y-2">
           {errorMessage ? (
             <Alert variant="destructive">
               <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
           ) : null}
-          <CardHeader className="space-y-4">
-            <CardTitle className="text-2xl">Get Started</CardTitle>
-            <CardDescription>
-              Get started with your business management portal
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
-              >
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center justify-center  ">
+            <img
+              src="/logo-transparent.png"
+              alt="Embark Logo"
+              className="size-20"
+            />
+            <p className=" text-orange-800 font-serif text-3xl">Embark</p>
+          </div>
+
+          <div className="text-center space-y-2">
+            <h1 className="text-xl font-bold text-gray-900">
+              Start your journey
+            </h1>
+            <p className="text-gray-600">
+              Create your account to begin planning amazing trips
+            </p>
+          </div>
+
+          <Card className="border-0 shadow-none bg-transparent">
+            <CardContent className="p-0">
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6"
+                >
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+
                           <FormControl>
                             <Input
                               placeholder="john@example.com"
                               className={
                                 form.formState.errors.email
                                   ? cn(
-                                      'pl-9 border-red-500',
+                                      ' border-red-500 h-11',
                                       'focus-visible:ring-red-500',
                                       'focus-visible:border-red-500',
                                     )
-                                  : 'pl-9'
+                                  : 'h-11'
                               }
                               {...field}
                             />
                           </FormControl>
                           <FormMessage />
-                        </div>
-                      </FormItem>
-                    )}
-                  />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="businessName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Business Name</FormLabel>
-                        <div className="relative">
-                          <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <FormControl>
-                            <Input
-                              placeholder="Your business name"
-                              className="pl-9"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </div>
-                      </FormItem>
-                    )}
-                  />
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>First Name</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="John"
+                                className="h-11"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Doe"
+                                className="h-11"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
                     <FormField
                       control={form.control}
-                      name="firstName"
+                      name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>First Name</FormLabel>
+                          <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input placeholder="John" {...field} />
+                            <Input
+                              type="password"
+                              placeholder="Create a secure password"
+                              className="h-11"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -156,12 +193,17 @@ function RegisterPage() {
 
                     <FormField
                       control={form.control}
-                      name="lastName"
+                      name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Last Name</FormLabel>
+                          <FormLabel>Confirm Password</FormLabel>
                           <FormControl>
-                            <Input placeholder="Doe" {...field} />
+                            <Input
+                              type="password"
+                              placeholder="Confirm your password"
+                              className="h-11"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -169,67 +211,36 @@ function RegisterPage() {
                     />
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="Create a secure password"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                  <Button
+                    type="submit"
+                    className="w-full h-11 text-base "
+                    disabled={!form.formState.isValid}
+                  >
+                    {form.formState.isSubmitting ? (
+                      <LoadingSpinner text="Creating account..." />
+                    ) : (
+                      'Create Account'
                     )}
-                  />
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
 
-                  <FormField
-                    control={form.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="Confirm your password"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={!form.formState.isValid}
-                >
-                  {form.formState.isSubmitting ? (
-                    <LoadingSpinner text="Creating account..." />
-                  ) : (
-                    'Sign up'
-                  )}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-          <CardFooter className="justify-center">
+          <div className="text-center">
             <div className="text-sm text-muted-foreground">
               Already have an account?{' '}
-              <Link to="/login" className="text-primary hover:underline">
+              <Link
+                to="/login"
+                search={{ redirect: undefined }}
+                className="text-primary hover:underline font-medium"
+              >
                 Sign in
               </Link>
             </div>
-          </CardFooter>
-        </Card>
-      </main>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
