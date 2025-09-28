@@ -10,30 +10,20 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as RegisterIndexRouteImport } from './routes/register/index'
-import { Route as LoginIndexRouteImport } from './routes/login/index'
 import { Route as ItinerariesIndexRouteImport } from './routes/itineraries/index'
 import { Route as ChatIndexRouteImport } from './routes/chat/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
 import { Route as ApiDemoTqTodosRouteImport } from './routes/api.demo-tq-todos'
 import { Route as ApiDemoNamesRouteImport } from './routes/api.demo-names'
 import { Route as ItinerariesItineraryIdIndexRouteImport } from './routes/itineraries/$itineraryId/index'
+import { Route as authRegisterIndexRouteImport } from './routes/(auth)/register/index'
+import { Route as authLoginIndexRouteImport } from './routes/(auth)/login/index'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo.start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo.start.api-request'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RegisterIndexRoute = RegisterIndexRouteImport.update({
-  id: '/register/',
-  path: '/register/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginIndexRoute = LoginIndexRouteImport.update({
-  id: '/login/',
-  path: '/login/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ItinerariesIndexRoute = ItinerariesIndexRouteImport.update({
@@ -67,6 +57,16 @@ const ItinerariesItineraryIdIndexRoute =
     path: '/itineraries/$itineraryId/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const authRegisterIndexRoute = authRegisterIndexRouteImport.update({
+  id: '/(auth)/register/',
+  path: '/register/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authLoginIndexRoute = authLoginIndexRouteImport.update({
+  id: '/(auth)/login/',
+  path: '/login/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DemoStartServerFuncsRoute = DemoStartServerFuncsRouteImport.update({
   id: '/demo/start/server-funcs',
   path: '/demo/start/server-funcs',
@@ -85,10 +85,10 @@ export interface FileRoutesByFullPath {
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/chat': typeof ChatIndexRoute
   '/itineraries': typeof ItinerariesIndexRoute
-  '/login': typeof LoginIndexRoute
-  '/register': typeof RegisterIndexRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/login': typeof authLoginIndexRoute
+  '/register': typeof authRegisterIndexRoute
   '/itineraries/$itineraryId': typeof ItinerariesItineraryIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -98,10 +98,10 @@ export interface FileRoutesByTo {
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/chat': typeof ChatIndexRoute
   '/itineraries': typeof ItinerariesIndexRoute
-  '/login': typeof LoginIndexRoute
-  '/register': typeof RegisterIndexRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/login': typeof authLoginIndexRoute
+  '/register': typeof authRegisterIndexRoute
   '/itineraries/$itineraryId': typeof ItinerariesItineraryIdIndexRoute
 }
 export interface FileRoutesById {
@@ -112,10 +112,10 @@ export interface FileRoutesById {
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/chat/': typeof ChatIndexRoute
   '/itineraries/': typeof ItinerariesIndexRoute
-  '/login/': typeof LoginIndexRoute
-  '/register/': typeof RegisterIndexRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/(auth)/login/': typeof authLoginIndexRoute
+  '/(auth)/register/': typeof authRegisterIndexRoute
   '/itineraries/$itineraryId/': typeof ItinerariesItineraryIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -127,10 +127,10 @@ export interface FileRouteTypes {
     | '/demo/tanstack-query'
     | '/chat'
     | '/itineraries'
-    | '/login'
-    | '/register'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
+    | '/login'
+    | '/register'
     | '/itineraries/$itineraryId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -140,10 +140,10 @@ export interface FileRouteTypes {
     | '/demo/tanstack-query'
     | '/chat'
     | '/itineraries'
-    | '/login'
-    | '/register'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
+    | '/login'
+    | '/register'
     | '/itineraries/$itineraryId'
   id:
     | '__root__'
@@ -153,10 +153,10 @@ export interface FileRouteTypes {
     | '/demo/tanstack-query'
     | '/chat/'
     | '/itineraries/'
-    | '/login/'
-    | '/register/'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
+    | '/(auth)/login/'
+    | '/(auth)/register/'
     | '/itineraries/$itineraryId/'
   fileRoutesById: FileRoutesById
 }
@@ -167,10 +167,10 @@ export interface RootRouteChildren {
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   ChatIndexRoute: typeof ChatIndexRoute
   ItinerariesIndexRoute: typeof ItinerariesIndexRoute
-  LoginIndexRoute: typeof LoginIndexRoute
-  RegisterIndexRoute: typeof RegisterIndexRoute
   DemoStartApiRequestRoute: typeof DemoStartApiRequestRoute
   DemoStartServerFuncsRoute: typeof DemoStartServerFuncsRoute
+  authLoginIndexRoute: typeof authLoginIndexRoute
+  authRegisterIndexRoute: typeof authRegisterIndexRoute
   ItinerariesItineraryIdIndexRoute: typeof ItinerariesItineraryIdIndexRoute
 }
 
@@ -181,20 +181,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/register/': {
-      id: '/register/'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login/': {
-      id: '/login/'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/itineraries/': {
@@ -239,6 +225,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ItinerariesItineraryIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(auth)/register/': {
+      id: '/(auth)/register/'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof authRegisterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/login/': {
+      id: '/(auth)/login/'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof authLoginIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demo/start/server-funcs': {
       id: '/demo/start/server-funcs'
       path: '/demo/start/server-funcs'
@@ -263,10 +263,10 @@ const rootRouteChildren: RootRouteChildren = {
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   ChatIndexRoute: ChatIndexRoute,
   ItinerariesIndexRoute: ItinerariesIndexRoute,
-  LoginIndexRoute: LoginIndexRoute,
-  RegisterIndexRoute: RegisterIndexRoute,
   DemoStartApiRequestRoute: DemoStartApiRequestRoute,
   DemoStartServerFuncsRoute: DemoStartServerFuncsRoute,
+  authLoginIndexRoute: authLoginIndexRoute,
+  authRegisterIndexRoute: authRegisterIndexRoute,
   ItinerariesItineraryIdIndexRoute: ItinerariesItineraryIdIndexRoute,
 }
 export const routeTree = rootRouteImport
