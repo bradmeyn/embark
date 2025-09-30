@@ -13,9 +13,6 @@ export const loginSchema = z.object({
 
 export const registerSchema = z
   .object({
-    businessName: z
-      .string()
-      .min(2, 'Business name must be at least 2 characters'),
     firstName: z.string().min(2, 'First name must be at least 2 characters'),
     lastName: z.string().min(2, 'Last name must be at least 2 characters'),
     ...loginSchema.shape,

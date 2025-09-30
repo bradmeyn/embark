@@ -1,12 +1,12 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { useServerFn } from '@tanstack/react-start'
 import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-
-import type { RegisterCredentials } from '@/schemas/auth'
-import { registerSchema } from '@/schemas/auth'
+import type { RegisterCredentials } from '@/lib/schemas/auth'
+import { registerUser } from '@/lib/server/functions/auth'
+import { registerSchema } from '@/lib/schemas/auth'
 import { cn } from '@/lib/utils'
-
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Form,
@@ -20,7 +20,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
-// Form
+import { authClient } from '@/lib/auth-client'
 
 import LoadingSpinner from '@/components/loading-spinner'
 
@@ -30,6 +30,7 @@ export const Route = createFileRoute('/(auth)/register/')({
 
 function RegisterPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const register = useServerFn(registerUser)
 
   const form = useForm<RegisterCredentials>({
     resolver: zodResolver(registerSchema),
@@ -44,8 +45,16 @@ function RegisterPage() {
     },
   })
 
-  function onSubmit(_data: RegisterCredentials) {
+  async function onSubmit(data: RegisterCredentials) {
     try {
+      console.log('Submitting registration form with data:', data)
+
+      const result = await authClient.signUp.email({
+        email: data.email,
+        password: data.password,
+      })
+      console.log('Registration successful:', result)
+      // Clear any previous error messages
       setErrorMessage(null)
     } catch (error) {
       console.error('Registration error:', error)

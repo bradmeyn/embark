@@ -4,8 +4,8 @@ import { Lock, Mail } from 'lucide-react'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import type { LoginCredentials } from '@/schemas/auth'
-import { loginSchema } from '@/schemas/auth'
+import type { LoginCredentials } from '@/lib/schemas/auth'
+import { loginSchema } from '@/lib/schemas/auth'
 
 import {
   Card,
