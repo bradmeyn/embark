@@ -1,11 +1,11 @@
 <script lang="ts">
 	import logo from '$lib/assets/logo-transparent.png';
-	import { getCurrentUser, logoutUser } from '$lib/remotes/auth.remote';
+	import { getCurrentUser } from '$lib/remotes/auth.remote';
 
 	const user = getCurrentUser();
 </script>
 
-<header class="container mx-auto flex items-center justify-between p-4">
+<header class="container mx-auto flex items-center justify-between px-4">
 	<div class="flex items-center justify-center">
 		<img src={logo} alt="Embark Logo" class="size-14" />
 		<p class=" font-serif text-xl text-primary">Embark</p>

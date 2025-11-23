@@ -1,35 +1,31 @@
 <script lang="ts">
-	import Button, { buttonVariants } from '$lib/components/ui/button/button.svelte';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import Input from '$lib/components/ui/input/input.svelte';
-	import * as Field from '$lib/components/ui/field';
-	import { addDay } from '$lib/remotes/day.remote';
-	import Spinner from '../ui/spinner/spinner.svelte';
-
+	import Button, { buttonVariants } from '$ui/button/button.svelte';
+	import * as Dialog from '$ui/dialog/index.js';
+	import Input from '$ui/input/input.svelte';
+	import * as Field from '$ui/field';
+	import Spinner from '$ui/spinner/spinner.svelte';
 	import { addDays } from '$lib/remotes/day.remote';
-
 	import { Plus, Trash } from '@lucide/svelte';
 
 	let {
 		itineraryId,
-		dayCount
+		nextDayNumber
 	}: {
 		itineraryId: string;
-		dayCount: number;
+		nextDayNumber: number;
 	} = $props();
 
-	let days = $derived([dayCount + 1]);
+	let isOpen = $state(false);
+	let days = $state([nextDayNumber]);
 
 	function addMore() {
-		days = [...days, days.length + dayCount + 1];
+		days = [...days, nextDayNumber + days.length];
 	}
 
 	function removeAt(index: number) {
 		if (days.length <= 1) return;
 		days = days.filter((_, i) => i !== index);
 	}
-
-	let isOpen = $state(false);
 </script>
 
 <Dialog.Root bind:open={isOpen}>
@@ -100,8 +96,8 @@
 
 			<div class="mt-4 flex justify-end">
 				<Dialog.Footer>
-					<Button type="submit" disabled={!!addDay.pending}>
-						{#if addDay.pending}
+					<Button type="submit" disabled={!!addDays.pending}>
+						{#if addDays.pending}
 							<Spinner class="size-4" />
 						{:else}
 							Add Days

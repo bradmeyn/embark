@@ -120,6 +120,10 @@
 	}
 
 	.card {
-		@apply bg-card text-card-foreground;
+		@apply rounded-lg bg-card p-6 text-card-foreground shadow-sm;
+	}
+
+	.heading-1 {
+		@apply mb-4 font-serif text-4xl font-light text-orange-900;
 	}
 }

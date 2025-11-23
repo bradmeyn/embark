@@ -6,7 +6,7 @@
 	let { trip }: { trip: TripWithItineraries } = $props();
 </script>
 
-<div class="max-w-xl rounded-lg border-2 shadow-sm">
+<div class="max-w-xl rounded-lg border-2 bg-white shadow-sm">
 	<div class="flex items-center justify-between">
 		<div class="flex items-center justify-between p-6">
 			<a href={`/trips/${trip.id}`} title="View trip details">
@@ -31,7 +31,7 @@
 							class="block rounded-md border bg-white p-4 transition-all hover:border-primary hover:shadow-sm"
 						>
 							<div class="flex items-center justify-between">
-								<h4 class="text-sm font-medium">{itinerary.name}</h4>
+								<h4 class="text-sm font-medium text-primary">{itinerary.name}</h4>
 								<ArrowRight class="size-3 text-muted-foreground" />
 							</div>
 						</a>

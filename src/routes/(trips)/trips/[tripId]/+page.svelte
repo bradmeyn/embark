@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getTrip } from '$lib/remotes/trip.remote';
 	import { page } from '$app/state';
-	import AddItinerary from '../../../lib/components/itinerary/add-itinerary-dialog.svelte';
+	import AddItinerary from '$lib/components/itinerary/add-itinerary-dialog.svelte';
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb';
 	const trip = $derived(await getTrip(page.params.tripId!));
 </script>

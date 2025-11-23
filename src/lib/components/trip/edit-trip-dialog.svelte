@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Button, { buttonVariants } from '$lib/components/ui/button/button.svelte';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import Input from '$lib/components/ui/input/input.svelte';
-	import * as Field from '$lib/components/ui/field';
+	import Button from '$ui/button/button.svelte';
+	import * as Dialog from '$ui/dialog/index.js';
+	import Input from '$ui/input/input.svelte';
+	import * as Field from '$ui/field';
 	import { editTrip, getTrips } from '$lib/remotes/trip.remote';
-	import Spinner from '../ui/spinner/spinner.svelte';
+	import Spinner from '$ui/spinner/spinner.svelte';
 	import { Pencil } from '@lucide/svelte';
 	import type { TripWithItineraries } from '$db/schemas/itinerary';
 
@@ -15,8 +15,10 @@
 
 <Dialog.Root bind:open={isOpen}>
 	<Dialog.Trigger class="flex items-center gap-2">
-		<Pencil class="size-4" />
-		<span>Edit Trip</span>
+		{#snippet child({ props })}
+			<Pencil class="size-4" />
+			<span>Edit Trip</span>
+		{/snippet}
 	</Dialog.Trigger>
 	<Dialog.Content>
 		<Dialog.Header>

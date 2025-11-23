@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Button, { buttonVariants } from '$lib/components/ui/button/button.svelte';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import Input from '$lib/components/ui/input/input.svelte';
-	import * as Field from '$lib/components/ui/field';
+	import Button, { buttonVariants } from '$ui/button/button.svelte';
+	import * as Dialog from '$ui/dialog/index.js';
+	import Input from '$ui/input/input.svelte';
+	import * as Field from '$ui/field';
 	import { addTrip } from '$lib/remotes/trip.remote';
-	import Spinner from '../ui/spinner/spinner.svelte';
+	import Spinner from '$ui/spinner/spinner.svelte';
 
 	let isOpen = $state(false);
 
@@ -31,7 +31,9 @@
 </script>
 
 <Dialog.Root bind:open={isOpen}>
-	<Dialog.Trigger class={buttonVariants({ variant: 'default' })}>Create Trip</Dialog.Trigger>
+	<Dialog.Trigger class={buttonVariants({ variant: 'default' })} onclick={() => (isOpen = true)}
+		>Create Trip</Dialog.Trigger
+	>
 	<Dialog.Content>
 		<Dialog.Header>
 			<Dialog.Title>Create a New Trip</Dialog.Title>

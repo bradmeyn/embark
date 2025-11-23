@@ -37,8 +37,11 @@ export const getItinerary = query(z.string(), async (id: string) => {
 		where: eq(itineraryTable.id, id),
 		with: {
 			days: {
+				orderBy: (day, { asc }) => [asc(day.dayNumber)],
 				with: {
-					activities: true
+					activities: {
+						orderBy: (activity, { asc }) => [asc(activity.time), asc(activity.createdAt)]
+					}
 				}
 			}
 		}

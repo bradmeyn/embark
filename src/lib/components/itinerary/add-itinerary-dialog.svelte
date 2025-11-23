@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Button, { buttonVariants } from '$lib/components/ui/button/button.svelte';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import Input from '$lib/components/ui/input/input.svelte';
-	import * as Field from '$lib/components/ui/field';
+	import Button from '$ui/button/button.svelte';
+	import * as Dialog from '$ui/dialog/index.js';
+	import Input from '$ui/input/input.svelte';
+	import * as Field from '$ui/field';
 	import { addItinerary } from '$lib/remotes/itinerary.remote';
-	import Spinner from '../ui/spinner/spinner.svelte';
+	import Spinner from '$ui/spinner/spinner.svelte';
 	import { Plus } from '@lucide/svelte';
 
 	let { tripId }: { tripId: string } = $props();
@@ -14,8 +14,10 @@
 
 <Dialog.Root bind:open={isOpen}>
 	<Dialog.Trigger class="flex items-center gap-2">
-		<Plus class="size-4" />
-		<span>Add Itinerary</span>
+		{#snippet child()}
+			<Plus class="size-4" />
+			<span>Add Itinerary</span>
+		{/snippet}
 	</Dialog.Trigger>
 	<Dialog.Content>
 		<Dialog.Header>
@@ -24,7 +26,7 @@
 		</Dialog.Header>
 
 		<form
-			{...addItinerary.enhance(async ({ form, submit }) => {
+			{...addItinerary.for(tripId).enhance(async ({ form, submit }) => {
 				try {
 					await submit();
 					form.reset();

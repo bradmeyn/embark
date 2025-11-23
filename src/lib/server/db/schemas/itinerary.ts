@@ -53,7 +53,6 @@ export const activityTable = pgTable('activity', {
 	time: timestamp('time'),
 	location: text('location'),
 	cost: text('cost'),
-	// REMOVE userId here - get it from day → itinerary → trip
 	...timesStamps
 });
 
@@ -101,4 +100,16 @@ export type TripWithItineraries = Trip & {
 	itineraries: (Itinerary & {
 		days: Day[];
 	})[];
+};
+
+export type DayWithActivities = Day & {
+	activities: Activity[];
+};
+
+export type ItineraryWithDays = Itinerary & {
+	days: DayWithActivities[];
+};
+
+export type ItineraryWithBasicDays = Itinerary & {
+	days: Day[];
 };

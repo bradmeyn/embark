@@ -1,9 +1,9 @@
 <script lang="ts">
-	import Button from '$lib/components/ui/button/button.svelte';
-	import Input from '$lib/components/ui/input/input.svelte';
-	import * as Field from '$lib/components/ui/field';
+	import Button from '$ui/button/button.svelte';
+	import Input from '$ui/input/input.svelte';
+	import * as Field from '$ui/field';
 	import { addDays } from '$lib/remotes/day.remote';
-	import Spinner from '../ui/spinner/spinner.svelte';
+	import Spinner from '$ui/spinner/spinner.svelte';
 
 	import { Plus, Trash } from '@lucide/svelte';
 
@@ -25,9 +25,9 @@
 	}
 </script>
 
-<div class="space-y-6 rounded-xl border border-orange-100 bg-orange-50 p-6 shadow-sm">
+<div class="space-y-6 rounded-xl">
 	<header class="space-y-2">
-		<h2 class="font-serif text-3xl font-light text-orange-900">Get started</h2>
+		<h1 class="heading-1">Get started</h1>
 		<p class=" text-muted-foreground">Add days to your itinerary to begin planning your trip.</p>
 
 		{#each addDays.fields.issues() as issue}

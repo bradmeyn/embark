@@ -5,7 +5,7 @@
 </script>
 
 <div class="container mx-auto max-w-3xl">
-	<h1 class="mb-4 font-serif text-4xl font-light">Your Trips</h1>
+	<h1 class="heading-1">Your Trips</h1>
 
 	<svelte:boundary>
 		{#snippet pending()}

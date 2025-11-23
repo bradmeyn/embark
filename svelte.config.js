@@ -14,7 +14,8 @@ const config = {
 
 	kit: {
 		alias: {
-			$db: 'src/lib/server/db'
+			$db: 'src/lib/server/db',
+			$ui: 'src/lib/components/ui'
 		},
 		experimental: {
 			remoteFunctions: true
