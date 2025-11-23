@@ -10,8 +10,7 @@
 
 	const submit = async ({
 		form,
-		submit,
-		data
+		submit
 	}: {
 		form: HTMLFormElement;
 		submit: () => Promise<void>;

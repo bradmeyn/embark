@@ -15,7 +15,6 @@
 		nextDayNumber: number;
 	} = $props();
 
-	let isOpen = $state(false);
 	let days = $state([nextDayNumber]);
 
 	function addMore() {
@@ -28,7 +27,7 @@
 	}
 </script>
 
-<Dialog.Root bind:open={isOpen}>
+<Dialog.Root>
 	<Dialog.Trigger class={buttonVariants({ variant: 'default', size: 'sm' })}
 		>Add a Day</Dialog.Trigger
 	>
@@ -47,7 +46,7 @@
 				<div class="group rounded-lg bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
 					<div class="flex items-start gap-3">
 						<div
-							class="flex h-10 w-16 flex-shrink-0 items-center justify-center rounded-md bg-orange-100 text-sm font-semibold text-primary"
+							class="flex h-10 w-16 items-center justify-center rounded-md bg-orange-100 text-sm font-semibold text-primary"
 						>
 							Day {day}
 						</div>
@@ -103,7 +102,7 @@
 							Add Days
 						{/if}
 					</Button>
-					<Button type="button" variant="outline" onclick={() => (isOpen = false)}>Cancel</Button>
+					<Button type="button" variant="outline">Cancel</Button>
 				</Dialog.Footer>
 			</div>
 		</form>
