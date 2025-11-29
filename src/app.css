@@ -124,6 +124,6 @@
 	}
 
 	.heading-1 {
-		@apply mb-4 font-serif text-4xl font-light text-orange-900;
+		@apply mb-4 font-serif text-4xl font-light;
 	}
 }

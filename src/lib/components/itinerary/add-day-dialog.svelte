@@ -44,11 +44,12 @@
 		<form {...addDays} class="space-y-3">
 			{#each days as day, i (i)}
 				<div class="group rounded-lg bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
-					<div class="flex items-start gap-3">
+					<div class="flex items-center gap-3">
 						<div
-							class="flex h-10 w-16 items-center justify-center rounded-md bg-orange-100 text-sm font-semibold text-primary"
+							class="flex size-10 flex-col items-center justify-center rounded-lg border bg-muted/80 p-8 font-serif"
 						>
-							Day {day}
+							<span>Day</span>
+							<span class="text-lg text-primary">{i + 1}</span>
 						</div>
 
 						<Field.Field class="flex-1">

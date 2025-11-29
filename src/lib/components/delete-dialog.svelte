@@ -5,15 +5,21 @@
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import type { Snippet } from 'svelte';
 
-	type Props = {
+	let {
+		label,
+		onDelete,
+		trigger,
+		loading,
+		open = $bindable(false),
+		showTrigger = true
+	}: {
 		label: string;
 		onDelete: () => Promise<void> | void;
 		trigger?: Snippet;
 		loading?: boolean;
-	};
-
-	let { label, onDelete, trigger, loading }: Props = $props();
-	let open = $state(false);
+		open?: boolean;
+		showTrigger?: boolean;
+	} = $props();
 	let internalLoading = $state(false);
 	const isLoading = $derived(loading ?? internalLoading);
 
@@ -32,15 +38,17 @@
 </script>
 
 <AlertDialog.Root bind:open>
-	<AlertDialog.Trigger>
-		{#if trigger}
-			{@render trigger()}
-		{:else}
-			<button class={buttonVariants({ variant: 'ghost', size: 'sm' })} type="button">
-				<Trash class="size-4" />
-			</button>
-		{/if}
-	</AlertDialog.Trigger>
+	{#if showTrigger}
+		<AlertDialog.Trigger>
+			{#if trigger}
+				{@render trigger()}
+			{:else}
+				<button class={buttonVariants({ variant: 'ghost', size: 'sm' })} type="button">
+					<Trash class="size-4" />
+				</button>
+			{/if}
+		</AlertDialog.Trigger>
+	{/if}
 	<AlertDialog.Content>
 		<AlertDialog.Header>
 			<AlertDialog.Title>Delete {label}</AlertDialog.Title>

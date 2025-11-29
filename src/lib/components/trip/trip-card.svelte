@@ -6,14 +6,16 @@
 	let { trip }: { trip: TripWithItineraries } = $props();
 </script>
 
-<div class="max-w-xl rounded-lg border-2 bg-white shadow-sm">
-	<div class="flex items-center justify-between">
-		<div class="flex items-center justify-between p-6">
+<div class=" rounded-lg border-2 bg-white shadow-sm">
+	<div class="flex items-center justify-between p-6">
+		<div class="flex items-center justify-between">
 			<a href={`/trips/${trip.id}`} title="View trip details">
 				<h2 class="font-serif text-2xl text-muted-foreground">{trip.name}</h2>
 			</a>
 		</div>
-		<TripActionsMenu {trip} />
+		<div>
+			<TripActionsMenu {trip} />
+		</div>
 	</div>
 
 	<div class="border-t bg-gray-50/50 px-6 py-4">
@@ -31,7 +33,17 @@
 							class="block rounded-md border bg-white p-4 transition-all hover:border-primary hover:shadow-sm"
 						>
 							<div class="flex items-center justify-between">
-								<h4 class="text-sm font-medium text-primary">{itinerary.name}</h4>
+								<div>
+									<h4 class="text-sm font-medium text-primary">{itinerary.name}</h4>
+									{#if itinerary.days.length > 0}
+										<p class="text-xs text-muted-foreground">
+											{itinerary.days.length}
+											{itinerary.days.length === 1 ? ' day' : ' days'} planned
+										</p>
+									{:else}
+										<p class="text-xs text-muted-foreground">No days planned yet</p>
+									{/if}
+								</div>
 								<ArrowRight class="size-3 text-muted-foreground" />
 							</div>
 						</a>

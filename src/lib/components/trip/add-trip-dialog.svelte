@@ -6,7 +6,13 @@
 	import { addTrip } from '$lib/remotes/trip.remote';
 	import Spinner from '$ui/spinner/spinner.svelte';
 
-	let isOpen = $state(false);
+	let {
+		open = $bindable(false),
+		showTrigger = true
+	}: {
+		open?: boolean;
+		showTrigger?: boolean;
+	} = $props();
 
 	const submit = async ({
 		form,
@@ -21,7 +27,7 @@
 			form.reset();
 
 			if (addTrip.result?.success) {
-				isOpen = false;
+				open = false;
 			}
 		} catch (error) {
 			console.error('Error creating trip:', error);
@@ -29,10 +35,10 @@
 	};
 </script>
 
-<Dialog.Root bind:open={isOpen}>
-	<Dialog.Trigger class={buttonVariants({ variant: 'default' })} onclick={() => (isOpen = true)}
-		>Create Trip</Dialog.Trigger
-	>
+<Dialog.Root bind:open>
+	{#if showTrigger}
+		<Dialog.Trigger class={buttonVariants({ variant: 'default' })}>Create Trip</Dialog.Trigger>
+	{/if}
 	<Dialog.Content>
 		<Dialog.Header>
 			<Dialog.Title>Create a New Trip</Dialog.Title>
@@ -64,7 +70,7 @@
 							Create Trip
 						{/if}
 					</Button>
-					<Button type="button" variant="outline" onclick={() => (isOpen = false)}>Cancel</Button>
+					<Button type="button" variant="outline" onclick={() => (open = false)}>Cancel</Button>
 				</Dialog.Footer>
 			</div>
 		</form>

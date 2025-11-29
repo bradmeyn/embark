@@ -1,4 +1,4 @@
-import { form, query } from '$app/server';
+import { command, form, query } from '$app/server';
 import { z } from 'zod';
 import { getCurrentUser } from '$lib/remotes/auth.remote';
 import { db } from '$db';
@@ -113,7 +113,7 @@ export const editTrip = form(
 	}
 );
 
-export const deleteTrip = form(
+export const deleteTrip = command(
 	z.object({
 		id: z.string()
 	}),
@@ -135,6 +135,8 @@ export const deleteTrip = form(
 		}
 
 		await db.delete(tripTable).where(eq(tripTable.id, id));
+
+		await getTrips().refresh();
 
 		return { success: true };
 	}

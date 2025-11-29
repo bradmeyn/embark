@@ -6,6 +6,8 @@
 	import AddActivityDialog from './add-activity-dialog.svelte';
 	import DeleteDialog from '../delete-dialog.svelte';
 	import ActivityCard from './activity-card.svelte';
+	import Button from '$ui/button/button.svelte';
+	import { Plus, Trash2 } from '@lucide/svelte';
 
 	let {
 		day,
@@ -14,6 +16,9 @@
 		day: DayWithActivities;
 		itineraryId: string;
 	} = $props();
+
+	let addActivityOpen = $state(false);
+	let deleteDialogOpen = $state(false);
 
 	const sortedActivities = $derived(
 		[...day.activities].sort((a, b) => {
@@ -51,7 +56,14 @@
 			<div class="flex items-center justify-between">
 				<div class="flex items-center justify-between gap-2">
 					<h2 class="font-serif text-lg">Activities</h2>
-					<AddActivityDialog dayId={day.id} {itineraryId} />
+					<Button
+						variant="ghost"
+						size="icon"
+						onclick={() => (addActivityOpen = true)}
+						aria-label="Add activity"
+					>
+						<Plus class="size-4" />
+					</Button>
 				</div>
 			</div>
 
@@ -69,8 +81,19 @@
 				</ol>
 			{/if}
 			<div class="flex items-center justify-center gap-2">
-				<DeleteDialog label={`day`} onDelete={handleDeleteDay} />
+				<Button variant="ghost" size="sm" onclick={() => (deleteDialogOpen = true)}>
+					<Trash2 class="size-4" />
+				</Button>
 			</div>
 		</section>
 	</Accordion.Content>
 </Accordion.Item>
+
+<!-- Dialogs rendered outside the accordion -->
+<AddActivityDialog dayId={day.id} {itineraryId} bind:open={addActivityOpen} showTrigger={false} />
+<DeleteDialog
+	label="day"
+	onDelete={handleDeleteDay}
+	bind:open={deleteDialogOpen}
+	showTrigger={false}
+/>

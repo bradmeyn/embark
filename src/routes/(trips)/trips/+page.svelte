@@ -4,8 +4,17 @@
 	import { getTrips } from '$lib/remotes/trip.remote';
 </script>
 
-<div class="container mx-auto max-w-3xl">
-	<h1 class="heading-1">Your Trips</h1>
+<div class="container mx-auto max-w-3xl py-8">
+	<div class="mb-6 flex items-center justify-between">
+		<div>
+			<p class="text-xs tracking-wide text-muted-foreground uppercase">Planner</p>
+			<h1 class="heading-1">Your Trips</h1>
+		</div>
+
+		{#if (await getTrips()).length > 0}
+			<CreateTripDialog />
+		{/if}
+	</div>
 
 	<svelte:boundary>
 		{#snippet pending()}
@@ -51,23 +60,21 @@
 
 		{#if (await getTrips()).length === 0}
 			<div
-				class="space-y-4 rounded-lg border border-orange-100 bg-orange-50 p-6 py-10 text-center shadow-sm"
+				class="space-y-4 rounded-lg border border-orange-100 bg-orange-50 bg-white p-6 py-10 text-center shadow-sm"
 			>
 				<h2 class="font-serif text-3xl font-light text-primary">No Trips Yet</h2>
 				<p class="text-muted-foreground">
 					You haven't created any trips yet. Add your first trip to start planning your adventures.
 				</p>
-				<CreateTripDialog />
+				<div class="mx-auto mt-4">
+					<CreateTripDialog />
+				</div>
 			</div>
 		{:else}
 			<div class="space-y-4">
 				{#each await getTrips() as trip}
 					<TripCard {trip} />
 				{/each}
-			</div>
-
-			<div class="mt-6">
-				<CreateTripDialog />
 			</div>
 		{/if}
 	</svelte:boundary>

@@ -33,7 +33,10 @@
 
 	{#if itinerary.days.length > 0}
 		<div class="flex items-start justify-between">
-			<h1 class="heading-1">{itinerary.name}</h1>
+			<div>
+				<p class="text-xs text-muted-foreground uppercase">Itinerary</p>
+				<h1 class="heading-1">{itinerary.name}</h1>
+			</div>
 			<AddDayDialog itineraryId={itinerary.id} {nextDayNumber} />
 		</div>
 

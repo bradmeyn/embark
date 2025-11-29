@@ -1,35 +1,70 @@
 <script lang="ts">
 	import * as DropdownMenu from '$ui/dropdown-menu/index.js';
-	import { EllipsisVertical } from '@lucide/svelte';
-	import Button from '$ui/button/button.svelte';
+	import { buttonVariants } from '$ui/button';
+	import { EllipsisVertical, Plus, Pencil, Trash2 } from '@lucide/svelte';
 
 	import DeleteDialog from '$lib/components/delete-dialog.svelte';
 	import AddItineraryDialog from '$lib/components/itinerary/add-itinerary-dialog.svelte';
 	import EditTripDialog from '$lib/components/trip/edit-trip-dialog.svelte';
 	import type { TripWithItineraries } from '$db/schemas/itinerary';
+	import { deleteTrip } from '$lib/remotes/trip.remote';
 
 	let { trip }: { trip: TripWithItineraries } = $props();
 
-	const onclick = (e: Event) => e.preventDefault();
+	let menuOpen = $state(false);
+	let addItineraryOpen = $state(false);
+	let editTripOpen = $state(false);
+	let deleteOpen = $state(false);
 
-	let open = $state(false);
+	async function handleDeleteTrip() {
+		try {
+			await deleteTrip({ id: trip.id });
+		} finally {
+			deleteOpen = false;
+		}
+	}
 </script>
 
-<DropdownMenu.Root bind:open>
-	<DropdownMenu.Trigger>
-		{#snippet child({ props })}
-			<Button {...props} variant="ghost" size="icon"><EllipsisVertical class="size-5" /></Button>
-		{/snippet}
+<DropdownMenu.Root bind:open={menuOpen}>
+	<DropdownMenu.Trigger class={buttonVariants({ variant: 'ghost', size: 'icon' })}>
+		<EllipsisVertical class="size-5" />
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Content>
 		<DropdownMenu.Group>
 			<DropdownMenu.Label>Trip Menu</DropdownMenu.Label>
-			<DropdownMenu.Item {onclick}><AddItineraryDialog tripId={trip.id} /></DropdownMenu.Item>
-			<DropdownMenu.Item {onclick}><EditTripDialog {trip} /></DropdownMenu.Item>
+			<DropdownMenu.Item
+				onclick={() => {
+					menuOpen = false;
+					addItineraryOpen = true;
+				}}
+			>
+				<Plus class="size-4" />
+				<span>Add Itinerary</span>
+			</DropdownMenu.Item>
+			<DropdownMenu.Item
+				onclick={() => {
+					menuOpen = false;
+					editTripOpen = true;
+				}}
+			>
+				<Pencil class="size-4" />
+				<span>Edit Trip</span>
+			</DropdownMenu.Item>
 			<DropdownMenu.Separator />
-			<DropdownMenu.Item>
-				<DeleteDialog label={'trip'} onDelete={() => {}} />
+			<DropdownMenu.Item
+				onclick={() => {
+					menuOpen = false;
+					deleteOpen = true;
+				}}
+			>
+				<Trash2 class="size-4" />
+				<span>Delete Trip</span>
 			</DropdownMenu.Item>
 		</DropdownMenu.Group>
 	</DropdownMenu.Content>
 </DropdownMenu.Root>
+
+<!-- Dialogs rendered outside the menu -->
+<AddItineraryDialog tripId={trip.id} bind:open={addItineraryOpen} showTrigger={false} />
+<EditTripDialog {trip} bind:open={editTripOpen} showTrigger={false} />
+<DeleteDialog label="trip" onDelete={handleDeleteTrip} bind:open={deleteOpen} showTrigger={false} />

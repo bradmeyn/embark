@@ -1,10 +1,11 @@
 <script lang="ts">
 	import type { Activity } from '$db/schemas/itinerary';
 	import { deleteActivity } from '$lib/remotes/activity.remote';
-	import { DollarSign, MapPin } from '@lucide/svelte';
+	import { DollarSign, MapPin, Trash2 } from '@lucide/svelte';
 	import DeleteDialog from '../delete-dialog.svelte';
 	import { Clock3 } from '@lucide/svelte';
 	import { getItinerary } from '$lib/remotes/itinerary.remote';
+	import Button from '$ui/button/button.svelte';
 
 	let {
 		activity,
@@ -13,6 +14,8 @@
 		activity: Activity;
 		itineraryId: string;
 	} = $props();
+
+	let deleteDialogOpen = $state(false);
 
 	const timeFormatter = new Intl.DateTimeFormat(undefined, {
 		hour: 'numeric',
@@ -64,5 +67,14 @@
 			{/if}
 		</div>
 	</div>
-	<DeleteDialog label={`activity`} onDelete={() => handleDeleteActivity(activity.id)} />
+	<Button variant="ghost" size="sm" onclick={() => (deleteDialogOpen = true)}>
+		<Trash2 class="size-4" />
+	</Button>
 </li>
+
+<DeleteDialog
+	label="activity"
+	onDelete={() => handleDeleteActivity(activity.id)}
+	bind:open={deleteDialogOpen}
+	showTrigger={false}
+/>

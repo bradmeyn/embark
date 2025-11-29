@@ -8,18 +8,24 @@
 	import { Pencil } from '@lucide/svelte';
 	import type { TripWithItineraries } from '$db/schemas/itinerary';
 
-	let { trip }: { trip: TripWithItineraries } = $props();
-
-	let isOpen = $state(false);
+	let {
+		trip,
+		open = $bindable(false),
+		showTrigger = true
+	}: {
+		trip: TripWithItineraries;
+		open?: boolean;
+		showTrigger?: boolean;
+	} = $props();
 </script>
 
-<Dialog.Root bind:open={isOpen}>
-	<Dialog.Trigger class="flex items-center gap-2">
-		{#snippet child({ props })}
+<Dialog.Root bind:open>
+	{#if showTrigger}
+		<Dialog.Trigger class="flex items-center gap-2">
 			<Pencil class="size-4" />
 			<span>Edit Trip</span>
-		{/snippet}
-	</Dialog.Trigger>
+		</Dialog.Trigger>
+	{/if}
 	<Dialog.Content>
 		<Dialog.Header>
 			<Dialog.Title>Edit Trip</Dialog.Title>
@@ -31,7 +37,7 @@
 					await submit().updates(getTrips());
 
 					if (editTrip.result) {
-						isOpen = false;
+						open = false;
 					} else {
 						alert('Failed to update trip.');
 					}
@@ -66,7 +72,7 @@
 							Update Trip
 						{/if}
 					</Button>
-					<Button type="button" variant="outline" onclick={() => (isOpen = false)}>Cancel</Button>
+					<Button type="button" variant="outline" onclick={() => (open = false)}>Cancel</Button>
 				</Dialog.Footer>
 			</div>
 		</form>

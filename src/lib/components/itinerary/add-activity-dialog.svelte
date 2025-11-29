@@ -10,20 +10,22 @@
 
 	let {
 		dayId,
-		itineraryId
+		itineraryId,
+		open = $bindable(false),
+		showTrigger = true
 	}: {
 		dayId: string;
 		itineraryId: string;
+		open?: boolean;
+		showTrigger?: boolean;
 	} = $props();
-
-	let isOpen = $state(false);
 
 	async function onSubmitEnhance({ form, submit }: any) {
 		try {
 			await submit().updates(getItinerary(itineraryId));
 			form.reset();
 			if (addActivity.result?.success) {
-				isOpen = false;
+				open = false;
 			}
 		} catch (e) {
 			console.error('Error adding activity', e);
@@ -31,14 +33,15 @@
 	}
 </script>
 
-<Dialog.Root bind:open={isOpen}>
-	<Dialog.Trigger
-		class={buttonVariants({ variant: 'ghost', size: 'icon' })}
-		aria-label="Add activity"
-		onclick={() => (isOpen = true)}
-	>
-		<Plus />
-	</Dialog.Trigger>
+<Dialog.Root bind:open>
+	{#if showTrigger}
+		<Dialog.Trigger
+			class={buttonVariants({ variant: 'ghost', size: 'icon' })}
+			aria-label="Add activity"
+		>
+			<Plus />
+		</Dialog.Trigger>
+	{/if}
 
 	<Dialog.Content>
 		<Dialog.Header>
@@ -115,7 +118,7 @@
 							Add Activity
 						{/if}
 					</Button>
-					<Button type="button" variant="outline" onclick={() => (isOpen = false)}>Cancel</Button>
+					<Button type="button" variant="outline" onclick={() => (open = false)}>Cancel</Button>
 				</Dialog.Footer>
 			</div>
 		</form>

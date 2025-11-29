@@ -7,18 +7,24 @@
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import { Plus } from '@lucide/svelte';
 
-	let { tripId }: { tripId: string } = $props();
-
-	let isOpen = $state(false);
+	let {
+		tripId,
+		open = $bindable(false),
+		showTrigger = true
+	}: {
+		tripId: string;
+		open?: boolean;
+		showTrigger?: boolean;
+	} = $props();
 </script>
 
-<Dialog.Root bind:open={isOpen}>
-	<Dialog.Trigger class="flex items-center gap-2">
-		{#snippet child()}
+<Dialog.Root bind:open>
+	{#if showTrigger}
+		<Dialog.Trigger class="flex items-center gap-2">
 			<Plus class="size-4" />
 			<span>Add Itinerary</span>
-		{/snippet}
-	</Dialog.Trigger>
+		</Dialog.Trigger>
+	{/if}
 	<Dialog.Content>
 		<Dialog.Header>
 			<Dialog.Title>Create a New Itinerary</Dialog.Title>
@@ -32,7 +38,7 @@
 					form.reset();
 
 					if (addItinerary.result?.success) {
-						isOpen = false;
+						open = false;
 					}
 				} catch (error) {
 					console.error('Error creating itinerary:', error);
@@ -65,7 +71,7 @@
 							Create Itinerary
 						{/if}
 					</Button>
-					<Button type="button" variant="outline" onclick={() => (isOpen = false)}>Cancel</Button>
+					<Button type="button" variant="outline" onclick={() => (open = false)}>Cancel</Button>
 				</Dialog.Footer>
 			</div>
 		</form>
