@@ -32,83 +32,111 @@ const editFlightSchema = z.object({
 	cost: z.number().min(0).optional()
 });
 
-export const addFlight = form(addFlightSchema, async ({ dayId, airline, flightNumber, departureAirport, arrivalAirport, departureTime, arrivalTime, confirmationNumber, notes, cost }) => {
-	const user = await getCurrentUser();
-	if (!user) error(401, 'Unauthorized');
+export const addFlight = form(
+	addFlightSchema,
+	async ({
+		dayId,
+		airline,
+		flightNumber,
+		departureAirport,
+		arrivalAirport,
+		departureTime,
+		arrivalTime,
+		confirmationNumber,
+		notes,
+		cost
+	}) => {
+		const user = await getCurrentUser();
+		if (!user) error(401, 'Unauthorized');
 
-	// Verify the day exists and belongs to the current user
-	const day = await db.query.dayTable.findFirst({
-		where: eq(dayTable.id, dayId),
-		with: {
-			itinerary: {
-				with: {
-					trip: true
+		// Verify the day exists and belongs to the current user
+		const day = await db.query.dayTable.findFirst({
+			where: eq(dayTable.id, dayId),
+			with: {
+				itinerary: {
+					with: {
+						trip: true
+					}
 				}
 			}
-		}
-	});
+		});
 
-	if (!day) error(404, 'Day not found');
-	if (day.itinerary.trip.userId !== user.id) error(403, 'Forbidden');
+		if (!day) error(404, 'Day not found');
+		if (day.itinerary.trip.userId !== user.id) error(403, 'Forbidden');
 
-	const [newFlight] = await db
-		.insert(flightTable)
-		.values({
-			dayId,
-			airline,
-			flightNumber: flightNumber ?? null,
-			departureAirport,
-			arrivalAirport,
-			departureTime: departureTime ?? null,
-			arrivalTime: arrivalTime ?? null,
-			confirmationNumber: confirmationNumber ?? null,
-			notes: notes ?? null,
-			cost: cost != null ? String(cost) : null
-		})
-		.returning();
+		const [newFlight] = await db
+			.insert(flightTable)
+			.values({
+				dayId,
+				airline,
+				flightNumber: flightNumber ?? null,
+				departureAirport,
+				arrivalAirport,
+				departureTime: departureTime ?? null,
+				arrivalTime: arrivalTime ?? null,
+				confirmationNumber: confirmationNumber ?? null,
+				notes: notes ?? null,
+				cost: cost != null ? String(cost) : null
+			})
+			.returning();
 
-	return { success: true, flight: newFlight };
-});
+		return { success: true, flight: newFlight };
+	}
+);
 
-export const editFlight = form(editFlightSchema, async ({ id, airline, flightNumber, departureAirport, arrivalAirport, departureTime, arrivalTime, confirmationNumber, notes, cost }) => {
-	const user = await getCurrentUser();
-	if (!user) error(401, 'Unauthorized');
+export const editFlight = form(
+	editFlightSchema,
+	async ({
+		id,
+		airline,
+		flightNumber,
+		departureAirport,
+		arrivalAirport,
+		departureTime,
+		arrivalTime,
+		confirmationNumber,
+		notes,
+		cost
+	}) => {
+		const user = await getCurrentUser();
+		if (!user) error(401, 'Unauthorized');
 
-	const flight = await db.query.flightTable.findFirst({
-		where: eq(flightTable.id, id),
-		with: {
-			day: {
-				with: {
-					itinerary: {
-						with: {
-							trip: true
+		const flight = await db.query.flightTable.findFirst({
+			where: eq(flightTable.id, id),
+			with: {
+				day: {
+					with: {
+						itinerary: {
+							with: {
+								trip: true
+							}
 						}
 					}
 				}
 			}
-		}
-	});
+		});
 
-	if (!flight) error(404, 'Flight not found');
-	if (flight.day.itinerary.trip.userId !== user.id) error(403, 'Forbidden');
+		if (!flight) error(404, 'Flight not found');
+		if (flight.day.itinerary.trip.userId !== user.id) error(403, 'Forbidden');
 
-	await db
-		.update(flightTable)
-		.set({
-			airline,
-			flightNumber: flightNumber ?? null,
-			departureAirport,
-			arrivalAirport,
-			departureTime: departureTime ?? null,
-			arrivalTime: arrivalTime ?? null,
-			confirmationNumber: confirmationNumber ?? null,
-			notes: notes ?? null,
-			cost: cost != null ? String(cost) : null
-		})
-		.where(eq(flightTable.id, id));
+		await db
+			.update(flightTable)
+			.set({
+				airline,
+				flightNumber: flightNumber ?? null,
+				departureAirport,
+				arrivalAirport,
+				departureTime: departureTime ?? null,
+				arrivalTime: arrivalTime ?? null,
+				confirmationNumber: confirmationNumber ?? null,
+				notes: notes ?? null,
+				cost: cost != null ? String(cost) : null
+			})
+			.where(eq(flightTable.id, id));
 
-	return { success: true };
-});
+		return { success: true };
+	}
+);
 
 export const deleteFlight = command(z.object({ flightId: z.string() }), async ({ flightId }) => {
 	const user = await getCurrentUser();

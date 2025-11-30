@@ -159,8 +159,8 @@
 					{...flightForm.fields.notes.as('text')}
 					rows="2"
 					class="w-full rounded-md border p-2"
-					placeholder="Any additional notes..."
-				>{flight.notes ?? ''}</textarea>
+					placeholder="Any additional notes...">{flight.notes ?? ''}</textarea
+				>
 				<Field.Error />
 			</Field.Field>
 

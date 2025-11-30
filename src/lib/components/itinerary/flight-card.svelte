@@ -28,7 +28,9 @@
 
 <div class="card flex items-start justify-between p-4 shadow-sm">
 	<div class="flex gap-3">
-		<div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-600">
+		<div
+			class="flex size-10 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-600"
+		>
 			<Plane class="size-5" />
 		</div>
 		<div>

@@ -107,8 +107,8 @@
 					{...hotelForm.fields.notes.as('text')}
 					rows="2"
 					class="w-full rounded-md border p-2"
-					placeholder="Any additional notes..."
-				>{hotel.notes ?? ''}</textarea>
+					placeholder="Any additional notes...">{hotel.notes ?? ''}</textarea
+				>
 				<Field.Error />
 			</Field.Field>
 

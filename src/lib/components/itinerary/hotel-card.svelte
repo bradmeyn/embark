@@ -28,7 +28,9 @@
 
 <div class="card flex items-start justify-between p-4 shadow-sm">
 	<div class="flex gap-3">
-		<div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+		<div
+			class="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600"
+		>
 			<Building2 class="size-5" />
 		</div>
 		<div>
