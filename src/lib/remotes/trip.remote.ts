@@ -72,7 +72,7 @@ export const addTrip = form(tripSchema, async ({ name }) => {
 		.returning();
 
 	await db.insert(itineraryTable).values({
-		name: `${name} 1`,
+		name: 'Itinerary 1',
 		tripId: newTrip.id
 	});
 	return { success: true };

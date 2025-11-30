@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Button from '$ui/button/button.svelte';
+	import Button, { buttonVariants } from '$ui/button/button.svelte';
 	import * as Dialog from '$ui/dialog/index.js';
 	import Input from '$ui/input/input.svelte';
 	import * as Field from '$ui/field';
@@ -20,10 +20,7 @@
 
 <Dialog.Root bind:open>
 	{#if showTrigger}
-		<Dialog.Trigger class="flex items-center gap-2">
-			<Plus class="size-4" />
-			<span>Add Itinerary</span>
-		</Dialog.Trigger>
+		<Dialog.Trigger class={buttonVariants({}) + ' flex items-center'}>Add Itinerary</Dialog.Trigger>
 	{/if}
 	<Dialog.Content>
 		<Dialog.Header>

@@ -5,14 +5,19 @@
 	import * as Field from '$ui/field';
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import { addDays } from '$lib/remotes/day.remote';
+	import { getItinerary } from '$lib/remotes/itinerary.remote';
 	import { Plus, Trash } from '@lucide/svelte';
 
 	let {
 		itineraryId,
-		nextDayNumber
+		nextDayNumber,
+		open = $bindable(false),
+		showTrigger = true
 	}: {
 		itineraryId: string;
 		nextDayNumber: number;
+		open?: boolean;
+		showTrigger?: boolean;
 	} = $props();
 
 	let days = $state([nextDayNumber]);
@@ -25,12 +30,27 @@
 		if (days.length <= 1) return;
 		days = days.filter((_, i) => i !== index);
 	}
+
+	async function onSubmitEnhance({ form, submit }: any) {
+		try {
+			await submit().updates(getItinerary(itineraryId));
+			if (addDays.result?.length > 0) {
+				form.reset();
+				days = [nextDayNumber];
+				open = false;
+			}
+		} catch (e) {
+			console.error('Error adding days', e);
+		}
+	}
 </script>
 
-<Dialog.Root>
-	<Dialog.Trigger class={buttonVariants({ variant: 'default', size: 'sm' })}
-		>Add a Day</Dialog.Trigger
-	>
+<Dialog.Root bind:open>
+	{#if showTrigger}
+		<Dialog.Trigger class={buttonVariants({ variant: 'default', size: 'sm' })}
+			>Add a Day</Dialog.Trigger
+		>
+	{/if}
 	<Dialog.Content>
 		<Dialog.Header>
 			<Dialog.Title>Add more days to your trip</Dialog.Title>
@@ -41,7 +61,7 @@
 			<p class="text-sm text-red-600">{issue.message}</p>
 		{/each}
 
-		<form {...addDays} class="space-y-3">
+		<form {...addDays.enhance(onSubmitEnhance)} class="space-y-3">
 			{#each days as day, i (i)}
 				<div class="group rounded-lg bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
 					<div class="flex items-center gap-3">
@@ -49,7 +69,7 @@
 							class="flex size-10 flex-col items-center justify-center rounded-lg border bg-muted/80 p-8 font-serif"
 						>
 							<span>Day</span>
-							<span class="text-lg text-primary">{i + 1}</span>
+							<span class="text-lg text-primary">{day}</span>
 						</div>
 
 						<Field.Field class="flex-1">
@@ -103,7 +123,7 @@
 							Add Days
 						{/if}
 					</Button>
-					<Button type="button" variant="outline">Cancel</Button>
+					<Button type="button" variant="outline" onclick={() => (open = false)}>Cancel</Button>
 				</Dialog.Footer>
 			</div>
 		</form>
