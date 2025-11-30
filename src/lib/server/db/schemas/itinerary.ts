@@ -56,6 +56,38 @@ export const activityTable = pgTable('activity', {
 	...timesStamps
 });
 
+export const hotelTable = pgTable('hotel', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	dayId: uuid('day_id')
+		.notNull()
+		.references(() => dayTable.id, { onDelete: 'cascade' }),
+	name: text('name').notNull(),
+	address: text('address'),
+	checkIn: text('check_in'),
+	checkOut: text('check_out'),
+	confirmationNumber: text('confirmation_number'),
+	notes: text('notes'),
+	cost: text('cost'),
+	...timesStamps
+});
+
+export const flightTable = pgTable('flight', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	dayId: uuid('day_id')
+		.notNull()
+		.references(() => dayTable.id, { onDelete: 'cascade' }),
+	airline: text('airline').notNull(),
+	flightNumber: text('flight_number'),
+	departureAirport: text('departure_airport').notNull(),
+	arrivalAirport: text('arrival_airport').notNull(),
+	departureTime: text('departure_time'),
+	arrivalTime: text('arrival_time'),
+	confirmationNumber: text('confirmation_number'),
+	notes: text('notes'),
+	cost: text('cost'),
+	...timesStamps
+});
+
 // Relations
 export const tripRelations = relations(tripTable, ({ many, one }) => ({
 	itineraries: many(itineraryTable),
@@ -78,7 +110,9 @@ export const dayRelations = relations(dayTable, ({ one, many }) => ({
 		fields: [dayTable.itineraryId],
 		references: [itineraryTable.id]
 	}),
-	activities: many(activityTable)
+	activities: many(activityTable),
+	hotels: many(hotelTable),
+	flights: many(flightTable)
 }));
 
 export const activityRelations = relations(activityTable, ({ one }) => ({
@@ -88,9 +122,25 @@ export const activityRelations = relations(activityTable, ({ one }) => ({
 	})
 }));
 
+export const hotelRelations = relations(hotelTable, ({ one }) => ({
+	day: one(dayTable, {
+		fields: [hotelTable.dayId],
+		references: [dayTable.id]
+	})
+}));
+
+export const flightRelations = relations(flightTable, ({ one }) => ({
+	day: one(dayTable, {
+		fields: [flightTable.dayId],
+		references: [dayTable.id]
+	})
+}));
+
 export type Day = typeof dayTable.$inferSelect;
 export type Itinerary = typeof itineraryTable.$inferSelect;
 export type Activity = typeof activityTable.$inferSelect;
+export type Hotel = typeof hotelTable.$inferSelect;
+export type Flight = typeof flightTable.$inferSelect;
 
 export type Trip = typeof tripTable.$inferSelect;
 export type NewTrip = typeof tripTable.$inferInsert;
@@ -104,6 +154,8 @@ export type TripWithItineraries = Trip & {
 
 export type DayWithActivities = Day & {
 	activities: Activity[];
+	hotels: Hotel[];
+	flights: Flight[];
 };
 
 export type ItineraryWithDays = Itinerary & {

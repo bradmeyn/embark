@@ -42,7 +42,9 @@ export const getItinerary = query(z.string(), async (id: string) => {
 				with: {
 					activities: {
 						orderBy: (activity, { asc }) => [asc(activity.time), asc(activity.createdAt)]
-					}
+					},
+					hotels: true,
+					flights: true
 				}
 			}
 		}
