@@ -102,3 +102,42 @@ export const deleteDay = command(z.object({ dayId: z.string() }), async ({ dayId
 
 	return { success: true };
 });
+
+const editDaySchema = z.object({
+	id: z.string(),
+	location: z.string().min(1, 'Location is required'),
+	overview: z.string().optional()
+});
+
+export const editDay = form(editDaySchema, async ({ id, location, overview }) => {
+	const user = await getCurrentUser();
+	if (!user) error(401, 'Unauthorized');
+
+	console.log('Editing day:', id);
+
+	const day = await db.query.dayTable.findFirst({
+		where: eq(dayTable.id, id),
+		with: {
+			itinerary: {
+				with: {
+					trip: true
+				}
+			}
+		}
+	});
+
+	if (!day) error(404, 'Day not found');
+	if (day.itinerary.trip.userId !== user.id) error(403, 'Forbidden');
+
+	const result = await db
+		.update(dayTable)
+		.set({
+			location,
+			overview: overview ?? null
+		})
+		.where(eq(dayTable.id, id))
+		.returning();
+	console.log('Update result:', result);
+
+	return { success: true };
+});

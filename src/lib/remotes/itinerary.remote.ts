@@ -36,6 +36,7 @@ export const getItinerary = query(z.string(), async (id: string) => {
 	const itinerary = await db.query.itineraryTable.findFirst({
 		where: eq(itineraryTable.id, id),
 		with: {
+			trip: true,
 			days: {
 				orderBy: (day, { asc }) => [asc(day.dayNumber)],
 				with: {

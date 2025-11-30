@@ -4,10 +4,11 @@
 	import { deleteDay } from '$lib/remotes/day.remote';
 	import { getItinerary } from '$lib/remotes/itinerary.remote';
 	import AddActivityDialog from './add-activity-dialog.svelte';
+	import EditDayDialog from './edit-day-dialog.svelte';
 	import DeleteDialog from '../delete-dialog.svelte';
 	import ActivityCard from './activity-card.svelte';
 	import Button from '$ui/button/button.svelte';
-	import { Plus, Trash2 } from '@lucide/svelte';
+	import { Plus, Pencil, Trash2 } from '@lucide/svelte';
 
 	let {
 		day,
@@ -18,6 +19,7 @@
 	} = $props();
 
 	let addActivityOpen = $state(false);
+	let editDayOpen = $state(false);
 	let deleteDialogOpen = $state(false);
 
 	const sortedActivities = $derived(
@@ -44,27 +46,64 @@
 </script>
 
 <Accordion.Item value={`day-${day.id}`}>
-	<Accordion.Trigger class="card flex items-center justify-between px-4 py-4 text-left shadow-sm">
-		<div>
-			<p class="text-xs tracking-wide text-muted-foreground uppercase">Day {day.dayNumber}</p>
-			<p class="font-serif text-xl text-foreground">{day.location}</p>
-			<p class="text-sm text-muted-foreground">{day.activities.length} activities</p>
+	<Accordion.Trigger
+		class="card flex items-center justify-between border px-4 py-4 text-left shadow-sm hover:border-primary"
+	>
+		<div class="flex-1">
+			<div class="flex items-center gap-2">
+				<span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+					Day {day.dayNumber}
+				</span>
+				<span class="text-xs text-muted-foreground">
+					{day.activities.length}
+					{day.activities.length === 1 ? 'activity' : 'activities'}
+				</span>
+			</div>
+			<p class="mt-1 font-serif text-xl text-foreground">{day.location}</p>
+			{#if day.overview}
+				<p class="mt-0.5 line-clamp-1 text-sm text-muted-foreground">{day.overview}</p>
+			{/if}
+		</div>
+		<div class="flex items-center gap-1">
+			<Button
+				variant="ghost"
+				size="icon"
+				class="size-8"
+				onclick={(e) => {
+					e.stopPropagation();
+					editDayOpen = true;
+				}}
+				aria-label="Edit day"
+			>
+				<Pencil class="size-3.5" />
+			</Button>
+			<Button
+				variant="ghost"
+				size="icon"
+				class="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+				onclick={(e) => {
+					e.stopPropagation();
+					deleteDialogOpen = true;
+				}}
+				aria-label="Delete day"
+			>
+				<Trash2 class="size-3.5" />
+			</Button>
 		</div>
 	</Accordion.Trigger>
-	<Accordion.Content class="space-y-6 border px-6 py-4">
+	<Accordion.Content class="space-y-6 rounded-b-lg border-x border-b px-6 py-4">
 		<section class="space-y-4">
 			<div class="flex items-center justify-between">
-				<div class="flex items-center justify-between gap-2">
-					<h2 class="font-serif text-lg">Activities</h2>
-					<Button
-						variant="ghost"
-						size="icon"
-						onclick={() => (addActivityOpen = true)}
-						aria-label="Add activity"
-					>
-						<Plus class="size-4" />
-					</Button>
-				</div>
+				<h2 class="font-serif text-lg">Activities</h2>
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={() => (addActivityOpen = true)}
+					class="gap-1.5"
+				>
+					<Plus class="size-3.5" />
+					Add Activity
+				</Button>
 			</div>
 
 			{#if sortedActivities.length === 0}
@@ -80,17 +119,13 @@
 					{/each}
 				</ol>
 			{/if}
-			<div class="flex items-center justify-center gap-2">
-				<Button variant="ghost" size="sm" onclick={() => (deleteDialogOpen = true)}>
-					<Trash2 class="size-4" />
-				</Button>
-			</div>
 		</section>
 	</Accordion.Content>
 </Accordion.Item>
 
 <!-- Dialogs rendered outside the accordion -->
 <AddActivityDialog dayId={day.id} {itineraryId} bind:open={addActivityOpen} showTrigger={false} />
+<EditDayDialog {day} {itineraryId} bind:open={editDayOpen} showTrigger={false} />
 <DeleteDialog
 	label="day"
 	onDelete={handleDeleteDay}

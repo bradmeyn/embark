@@ -6,10 +6,12 @@
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
 	import AddDayDialog from '$lib/components/itinerary/add-day-dialog.svelte';
 	import { ArrowRight } from '@lucide/svelte';
+	import { groupLocationsByConsecutive } from '$lib/utils';
 
 	let { params } = $props();
 
 	const itinerary = $derived(await getItinerary(params.itineraryId));
+	const locationGroups = $derived(groupLocationsByConsecutive(itinerary.days));
 	const nextDayNumber = $derived(
 		itinerary.days.reduce((max, day) => Math.max(max, day.dayNumber ?? 0), 0) + 1
 	);
@@ -23,7 +25,12 @@
 					<Breadcrumb.Link href="/trips">Trips</Breadcrumb.Link>
 				</Breadcrumb.Item>
 				<Breadcrumb.Separator />
-
+				<Breadcrumb.Item>
+					<Breadcrumb.Link href={`/trips/${itinerary.trip.id}`}
+						>{itinerary.trip.name}</Breadcrumb.Link
+					>
+				</Breadcrumb.Item>
+				<Breadcrumb.Separator />
 				<Breadcrumb.Item>
 					<Breadcrumb.Page>{itinerary.name}</Breadcrumb.Page>
 				</Breadcrumb.Item>
@@ -48,15 +55,17 @@
 					{itinerary.days.length === 1 ? 'day' : 'days'} planned
 				</p>
 			</div>
+
 			<div class="mt-4 flex flex-wrap items-center gap-3">
-				{#each itinerary.days as day, index}
+				{#each locationGroups as group, index}
 					<div class="flex items-center gap-3">
 						<div
 							class="rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary"
 						>
-							Day {day.dayNumber}: {day.location}
+							{group.location} ({group.days}
+							{group.days === 1 ? 'day' : 'days'})
 						</div>
-						{#if index < itinerary.days.length - 1}
+						{#if index < locationGroups.length - 1}
 							<ArrowRight class="h-4 w-4 text-muted-foreground" />
 						{/if}
 					</div>
