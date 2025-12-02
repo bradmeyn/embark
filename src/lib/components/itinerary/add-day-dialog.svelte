@@ -30,19 +30,6 @@
 		if (days.length <= 1) return;
 		days = days.filter((_, i) => i !== index);
 	}
-
-	async function onSubmitEnhance({ form, submit }: any) {
-		try {
-			await submit().updates(getItinerary(itineraryId));
-			if (addDays.result?.length > 0) {
-				form.reset();
-				days = [nextDayNumber];
-				open = false;
-			}
-		} catch (e) {
-			console.error('Error adding days', e);
-		}
-	}
 </script>
 
 <Dialog.Root bind:open>
@@ -61,7 +48,21 @@
 			<p class="text-sm text-red-600">{issue.message}</p>
 		{/each}
 
-		<form {...addDays.enhance(onSubmitEnhance)} class="space-y-3">
+		<form
+			{...addDays.enhance(async ({ form, submit }) => {
+				try {
+					await submit().updates(getItinerary(itineraryId));
+					if (addDays.result?.success) {
+						form.reset();
+						days = [nextDayNumber];
+						open = false;
+					}
+				} catch (e) {
+					console.error('Error adding days', e);
+				}
+			})}
+			class="space-y-3"
+		>
 			{#each days as day, i (i)}
 				<div class="group rounded-lg bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
 					<div class="flex items-center gap-3">

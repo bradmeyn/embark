@@ -63,7 +63,7 @@ export const addDays = form(daysArraySchema, async ({ days }) => {
 		)
 		.returning();
 
-	return inserted;
+	return { success: true, inserted };
 });
 
 export const deleteDay = command(z.object({ dayId: z.string() }), async ({ dayId }) => {
