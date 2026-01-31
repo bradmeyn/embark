@@ -11,4 +11,13 @@ declare global {
 	}
 }
 
+declare module '$env/static/private' {
+	export const RESEND_API_KEY: string;
+	export const BETTER_AUTH_SECRET: string;
+}
+
+declare module '$env/static/public' {
+	export const PUBLIC_BASE_URL: string;
+}
+
 export {};

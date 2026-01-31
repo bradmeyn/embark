@@ -35,6 +35,7 @@
 						</Field.Field>
 						<Field.Field>
 							<Field.Label for="password">Password</Field.Label>
+
 							<Input
 								{...loginUser.fields.password.as('password')}
 								type="password"
@@ -44,6 +45,11 @@
 							<Field.Error />
 						</Field.Field>
 					</Field.Set>
+					<a
+						class="text-sm text-primary hover:underline"
+						aria-label="Forgot password?"
+						href="/forgot-password">Forgot password?</a
+					>
 					<Button type="submit" class="mt-4 w-full">
 						{#if loginUser.pending}
 							Logging in...

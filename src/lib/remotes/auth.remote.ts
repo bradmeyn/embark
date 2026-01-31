@@ -1,5 +1,5 @@
 import { form, getRequestEvent, query } from '$app/server';
-import { registerSchema, loginSchema } from '$lib/schemas/auth';
+import { registerSchema, loginSchema, passwordResetSchema } from '$lib/schemas/auth';
 import { redirect } from '@sveltejs/kit';
 import { auth } from '$lib/server/auth';
 
@@ -55,4 +55,26 @@ export const logoutUser = form(async () => {
 export const getCurrentUser = query(async () => {
 	const { locals } = getRequestEvent();
 	return locals.user;
+});
+
+export const sendPasswordReset = form(loginSchema.pick({ email: true }), async ({ email }) => {
+	await auth.api.forgetPassword({
+		body: {
+			email,
+			redirectTo: '/reset-password' // BetterAuth appends this to your app URL
+		}
+	});
+
+	return {
+		success: true,
+		message: 'If an account with that email exists, a password reset link has been sent.'
+	};
+});
+
+export const resetPassword = form(passwordResetSchema, async ({ password, token }) => {
+	await auth.api.resetPassword({
+		body: { newPassword: password, token }
+	});
+
+	return { success: true as const };
 });
