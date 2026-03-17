@@ -10,10 +10,9 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<div class="flex min-h-screen flex-col">
+<div class="flex h-svh flex-col">
 	<Header />
-	<div class="flex-1 bg-orange-50 py-8">
+	<div class="mx-auto w-full max-w-6xl flex-1 overflow-hidden px-4">
 		{@render children?.()}
 	</div>
-	<footer></footer>
 </div>
