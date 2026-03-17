@@ -5,30 +5,66 @@
 	import * as Field from '$ui/field';
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import { addDays } from '$lib/remotes/day.remote';
-	import { getItinerary } from '$lib/remotes/itinerary.remote';
-	import { Plus, Trash } from '@lucide/svelte';
+	import { suggestNewDayForTrip } from '$lib/remotes/ai.remote';
+	import { getTrip } from '$lib/remotes/trip.remote';
+	import { Plus, Sparkles, Trash } from '@lucide/svelte';
 
 	let {
-		itineraryId,
+		tripId,
 		nextDayNumber,
 		open = $bindable(false),
 		showTrigger = true
 	}: {
-		itineraryId: string;
+		tripId: string;
 		nextDayNumber: number;
 		open?: boolean;
 		showTrigger?: boolean;
 	} = $props();
 
-	let days = $state([nextDayNumber]);
+	type DayRow = { dayNumber: number; location: string };
+
+	let rows = $state<DayRow[]>([{ dayNumber: nextDayNumber, location: '' }]);
+	let suggestingRow = $state<number | null>(null);
+
+	function resetRows() {
+		rows = [{ dayNumber: nextDayNumber, location: '' }];
+	}
 
 	function addMore() {
-		days = [...days, nextDayNumber + days.length];
+		rows = [...rows, { dayNumber: nextDayNumber + rows.length, location: '' }];
 	}
 
 	function removeAt(index: number) {
-		if (days.length <= 1) return;
-		days = days.filter((_, i) => i !== index);
+		if (rows.length <= 1) return;
+		rows = rows.filter((_, i) => i !== index);
+	}
+
+	async function suggestLocation(index: number) {
+		const row = rows[index];
+		if (!row) return;
+
+		suggestingRow = index;
+		try {
+			const result = await suggestNewDayForTrip({
+				tripId,
+				dayNumber: row.dayNumber
+			});
+			const suggestion = result.suggestion;
+			if (!suggestion) return;
+
+			rows = rows.map((existing, i) =>
+				i === index
+					? {
+						...existing,
+						location: suggestion.location ?? existing.location
+					}
+					: existing
+			);
+		} catch (e) {
+			console.error('Error suggesting day location', e);
+		} finally {
+			suggestingRow = null;
+		}
 	}
 </script>
 
@@ -44,33 +80,31 @@
 			<Dialog.Description>Please provide details for the new day.</Dialog.Description>
 		</Dialog.Header>
 
-		{#each addDays.fields.issues() as issue}
+		{#each addDays.fields.issues() as issue, i (`${issue.message}-${i}`)}
 			<p class="text-sm text-red-600">{issue.message}</p>
 		{/each}
 
 		<form
 			{...addDays.enhance(async ({ form, submit }) => {
 				try {
-					await submit().updates(getItinerary(itineraryId));
-					if (addDays.result?.success) {
-						form.reset();
-						days = [nextDayNumber];
-						open = false;
-					}
+					await submit().updates(getTrip(tripId));
+					form.reset();
+					resetRows();
+					open = false;
 				} catch (e) {
 					console.error('Error adding days', e);
 				}
 			})}
 			class="space-y-3"
 		>
-			{#each days as day, i (i)}
+			{#each rows as row, i (i)}
 				<div class="group rounded-lg bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
 					<div class="flex items-center gap-3">
 						<div
 							class="flex size-10 flex-col items-center justify-center rounded-lg border bg-muted/80 p-8 font-serif"
 						>
 							<span>Day</span>
-							<span class="text-lg text-primary">{day}</span>
+							<span class="text-lg text-primary">{row.dayNumber}</span>
 						</div>
 
 						<Field.Field class="flex-1">
@@ -79,6 +113,7 @@
 							</Field.Label>
 							<Input
 								{...addDays.fields.days[i].location.as('text')}
+								bind:value={rows[i].location}
 								placeholder="e.g., Tokyo, Paris, New York"
 								disabled={!!addDays.pending}
 								class="placeholder:text-gray-400"
@@ -87,9 +122,25 @@
 						</Field.Field>
 
 						<Button
+							size="sm"
+							variant="outline"
+							type="button"
+							onclick={() => suggestLocation(i)}
+							disabled={!!addDays.pending || suggestingRow !== null}
+						>
+							{#if suggestingRow === i}
+								<Spinner class="size-4" />
+							{:else}
+								<Sparkles class="size-3.5" />
+								Suggest with AI
+							{/if}
+						</Button>
+
+						<Button
 							size="icon-sm"
+							type="button"
 							onclick={() => removeAt(i)}
-							disabled={!!addDays.pending || days.length <= 1}
+							disabled={!!addDays.pending || rows.length <= 1}
 							variant="ghost"
 						>
 							<Trash class="h-4 w-4" />
@@ -97,8 +148,12 @@
 					</div>
 
 					<!-- hidden fields -->
-					<input {...addDays.fields.days[i].dayNumber.as('number')} class="hidden" value={day} />
-					<input type="hidden" name={`days[${i}].itineraryId`} value={itineraryId} />
+					<input
+						{...addDays.fields.days[i].dayNumber.as('number')}
+						class="hidden"
+						value={row.dayNumber}
+					/>
+					<input type="hidden" name={`days[${i}].tripId`} value={tripId} />
 				</div>
 			{/each}
 
