@@ -5,6 +5,7 @@ import { db } from '$db';
 import { flightTable, dayTable } from '$db/schemas/itinerary';
 import { eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
+import { assertTripAccess } from '$lib/server/trip-access';
 
 const addFlightSchema = z.object({
 	dayId: z.string(),
@@ -49,20 +50,13 @@ export const addFlight = form(
 		const user = await getCurrentUser();
 		if (!user) error(401, 'Unauthorized');
 
-		// Verify the day exists and belongs to the current user
 		const day = await db.query.dayTable.findFirst({
-			where: eq(dayTable.id, dayId),
-			with: {
-				itinerary: {
-					with: {
-						trip: true
-					}
-				}
-			}
+			where: eq(dayTable.id, dayId)
 		});
 
 		if (!day) error(404, 'Day not found');
-		if (day.itinerary.trip.userId !== user.id) error(403, 'Forbidden');
+
+		await assertTripAccess(day.tripId, user.id);
 
 		const [newFlight] = await db
 			.insert(flightTable)
@@ -104,20 +98,13 @@ export const editFlight = form(
 		const flight = await db.query.flightTable.findFirst({
 			where: eq(flightTable.id, id),
 			with: {
-				day: {
-					with: {
-						itinerary: {
-							with: {
-								trip: true
-							}
-						}
-					}
-				}
+				day: true
 			}
 		});
 
 		if (!flight) error(404, 'Flight not found');
-		if (flight.day.itinerary.trip.userId !== user.id) error(403, 'Forbidden');
+
+		await assertTripAccess(flight.day.tripId, user.id);
 
 		await db
 			.update(flightTable)
@@ -145,20 +132,13 @@ export const deleteFlight = command(z.object({ flightId: z.string() }), async ({
 	const flight = await db.query.flightTable.findFirst({
 		where: eq(flightTable.id, flightId),
 		with: {
-			day: {
-				with: {
-					itinerary: {
-						with: {
-							trip: true
-						}
-					}
-				}
-			}
+			day: true
 		}
 	});
 
 	if (!flight) error(404, 'Flight not found');
-	if (flight.day.itinerary.trip.userId !== user.id) error(403, 'Forbidden');
+
+	await assertTripAccess(flight.day.tripId, user.id);
 
 	await db.delete(flightTable).where(eq(flightTable.id, flightId));
 

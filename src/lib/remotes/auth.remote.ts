@@ -2,6 +2,9 @@ import { form, getRequestEvent, query } from '$app/server';
 import { registerSchema, loginSchema, passwordResetSchema } from '$lib/schemas/auth';
 import { redirect } from '@sveltejs/kit';
 import { auth } from '$lib/server/auth';
+import { db } from '$db';
+import { tripCollaboratorTable, tripInviteTable } from '$db/schemas/itinerary';
+import { and, eq, gt } from 'drizzle-orm';
 
 export const registerUser = form(
 	registerSchema,
@@ -20,7 +23,27 @@ export const registerUser = form(
 			};
 		}
 
-		redirect(302, '/trips');
+		// Consume any pending invites for this email
+		const now = new Date();
+		const pendingInvites = await db.query.tripInviteTable.findMany({
+			where: and(eq(tripInviteTable.invitedEmail, email), gt(tripInviteTable.expiresAt, now))
+		});
+
+		if (pendingInvites.length > 0) {
+			await db.insert(tripCollaboratorTable).values(
+				pendingInvites.map((invite) => ({
+					tripId: invite.tripId,
+					userId: result.user.id
+				}))
+			).onConflictDoNothing();
+
+			await db.delete(tripInviteTable).where(
+				eq(tripInviteTable.invitedEmail, email)
+			);
+		}
+
+		const redirectTo = event.url.searchParams.get('redirect') ?? '/trips';
+		redirect(302, redirectTo);
 	}
 );
 
@@ -39,7 +62,8 @@ export const loginUser = form(loginSchema, async ({ email, password }) => {
 		};
 	}
 
-	redirect(302, '/trips');
+	const redirectTo = event.url.searchParams.get('redirect') ?? '/trips';
+	redirect(302, redirectTo);
 });
 
 export const logoutUser = form(async () => {

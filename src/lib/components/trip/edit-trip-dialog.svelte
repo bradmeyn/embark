@@ -3,17 +3,17 @@
 	import * as Dialog from '$ui/dialog/index.js';
 	import Input from '$ui/input/input.svelte';
 	import * as Field from '$ui/field';
-	import { editTrip, getTrips } from '$lib/remotes/trip.remote';
+	import { editTrip, getMyTrips } from '$lib/remotes/trip.remote';
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import { Pencil } from '@lucide/svelte';
-	import type { TripWithItineraries } from '$db/schemas/itinerary';
+	import type { Trip } from '$db/schemas/itinerary';
 
 	let {
 		trip,
 		open = $bindable(false),
 		showTrigger = true
 	}: {
-		trip: TripWithItineraries;
+		trip: Trip;
 		open?: boolean;
 		showTrigger?: boolean;
 	} = $props();
@@ -34,7 +34,7 @@
 		<form
 			{...editTrip.enhance(async ({ submit, data }) => {
 				try {
-					await submit().updates(getTrips());
+					await submit().updates(getMyTrips());
 
 					if (editTrip.result) {
 						open = false;
@@ -59,6 +59,21 @@
 				/>
 				<Field.Error />
 				{#each editTrip.fields.name.issues() as issue}
+					<Field.Error>{issue.message}</Field.Error>
+				{/each}
+			</Field.Field>
+
+			<Field.Field class="mt-4">
+				<Field.Label for="coverImage">Cover Image URL</Field.Label>
+				<Input
+					id="coverImage"
+					{...editTrip.fields.coverImage.as('text')}
+					autocomplete="off"
+					placeholder="https://images.unsplash.com/..."
+					value={trip.coverImage ?? ''}
+					disabled={!!editTrip.pending}
+				/>
+				{#each editTrip.fields.coverImage.issues() as issue}
 					<Field.Error>{issue.message}</Field.Error>
 				{/each}
 			</Field.Field>

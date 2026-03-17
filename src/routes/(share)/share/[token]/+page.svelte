@@ -1,18 +1,13 @@
 <script lang="ts">
-	import { getTrip } from '$lib/remotes/trip.remote';
-	import { page } from '$app/state';
-	import GetStarted from '$lib/components/itinerary/get-started.svelte';
-	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
-	import AddDayDialog from '$lib/components/itinerary/add-day-dialog.svelte';
+	import type { PageData } from './$types';
+	import DayDetailReadonly from '$lib/components/itinerary/day-detail-readonly.svelte';
 	import ItineraryMap from '$lib/components/itinerary/itinerary-map.svelte';
 	import DayListItem from '$lib/components/itinerary/day-list-item.svelte';
-	import DayDetail from '$lib/components/itinerary/day-detail.svelte';
 	import { groupLocationsByConsecutive } from '$lib/utils';
 
-	const trip = $derived(await getTrip(page.params.tripId!));
-	const nextDayNumber = $derived(
-		trip.days.reduce((max, day) => Math.max(max, day.dayNumber ?? 0), 0) + 1
-	);
+	let { data }: { data: PageData } = $props();
+	const trip = $derived(data.trip);
+
 	const hasMap = $derived(trip.days.some((d) => d.latitude != null));
 	const locationGroups = $derived(groupLocationsByConsecutive(trip.days));
 
@@ -29,71 +24,47 @@
 
 	const selectedDay = $derived(trip.days.find((d) => d.id === selectedDayId) ?? null);
 
-	const activeHotels = $derived(
-		selectedDay
-			? trip.days
-					.flatMap((d) => d.hotels)
-					.filter((hotel) => {
-						const checkInDay = trip.days.find((d) => d.id === hotel.dayId);
-						if (!checkInDay) return false;
-						const nights = hotel.nights ?? 1;
-						return (
-							selectedDay.dayNumber >= checkInDay.dayNumber &&
-							selectedDay.dayNumber < checkInDay.dayNumber + nights
-						);
-					})
-			: []
+	const mapKey = $derived(
+		trip.days.map((d) => `${d.id}:${d.latitude}:${d.longitude}`).join(',')
 	);
-
-	const mapKey = $derived(trip.days.map((d) => `${d.id}:${d.latitude}:${d.longitude}`).join(','));
 </script>
 
-<div class="flex h-full flex-col bg-background">
-	<!-- Header bar -->
-	<div class="flex shrink-0 items-center justify-between border-b px-4 py-3">
-		<Breadcrumb.Root>
-			<Breadcrumb.List>
-				<Breadcrumb.Item>
-					<Breadcrumb.Link href="/trips">Trips</Breadcrumb.Link>
-				</Breadcrumb.Item>
-				<Breadcrumb.Separator />
-				<Breadcrumb.Item>
-					<Breadcrumb.Page>{trip.name}</Breadcrumb.Page>
-				</Breadcrumb.Item>
-			</Breadcrumb.List>
-		</Breadcrumb.Root>
+<svelte:head>
+	<title>{trip.name} — Embark</title>
+</svelte:head>
 
-		{#if trip.days.length > 0}
-			<div class="flex items-center gap-3">
-				<span class="hidden text-sm text-muted-foreground sm:block">
-					{trip.days.length}
-					{trip.days.length === 1 ? 'day' : 'days'} planned
-				</span>
-				<AddDayDialog tripId={trip.id} {nextDayNumber} />
-			</div>
-		{/if}
+<div class="mx-auto flex h-[calc(100svh-57px)] w-full max-w-6xl flex-col bg-background">
+	<!-- Header -->
+	<div class="flex shrink-0 items-center justify-between border-b px-4 py-3">
+		<div>
+			<h1 class="font-serif text-xl">{trip.name}</h1>
+			<p class="text-xs text-muted-foreground">Read-only view</p>
+		</div>
+		<span class="text-sm text-muted-foreground">
+			{trip.days.length}
+			{trip.days.length === 1 ? 'day' : 'days'} planned
+		</span>
 	</div>
 
 	{#if trip.days.length === 0}
-		<div class="flex-1 overflow-y-auto p-6">
-			<GetStarted tripId={trip.id} />
+		<div class="flex flex-1 items-center justify-center">
+			<p class="text-muted-foreground">No days planned yet.</p>
 		</div>
 	{:else}
-		<!-- ── DESKTOP (lg+) ─────────────────────────────────────────── -->
+		<!-- Desktop -->
 		<div class="hidden h-full flex-col overflow-hidden lg:flex">
 			<!-- Summary card -->
-			<div class="shrink-0 p-4">
+			<div class="shrink-0 border-b bg-muted/30 p-4">
 				<div class="rounded-xl border bg-card shadow-sm">
-					<!-- Map with padding -->
 					{#if hasMap}
 						<div class="p-3 pb-0">
-							<ItineraryMap days={trip.days} class="h-60 rounded-lg" />
+							{#key mapKey}
+								<ItineraryMap days={trip.days} class="h-48 rounded-lg" />
+							{/key}
 						</div>
 					{/if}
-
-					<!-- Location summary -->
-					<div class="scrollbar-none flex items-center gap-2 overflow-x-auto p-3">
-						{#each locationGroups as group, i (group.location)}
+					<div class="flex items-center gap-2 overflow-x-auto p-3 scrollbar-none">
+						{#each locationGroups as group, i}
 							<div class="flex shrink-0 items-center gap-2">
 								<span
 									class="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary"
@@ -122,31 +93,27 @@
 
 			<div class="flex flex-1 overflow-hidden">
 				<!-- Sidebar -->
-				<div class="flex w-48 shrink-0 flex-col border-r">
-					<div class="flex-1 space-y-1 overflow-y-auto p-1.5">
+				<div class="flex w-64 shrink-0 flex-col border-r">
+					<div class="flex-1 space-y-1 overflow-y-auto p-2">
 						{#each trip.days as day (day.id)}
 							<button onclick={() => (selectedDayId = day.id)} class="w-full text-left">
 								<DayListItem {day} active={selectedDayId === day.id} />
 							</button>
 						{/each}
 					</div>
-					<div class="shrink-0 border-t p-2">
-						<AddDayDialog tripId={trip.id} {nextDayNumber} />
-					</div>
 				</div>
 
 				<!-- Detail panel -->
 				<div class="flex-1 overflow-y-auto">
 					{#if selectedDay}
-						<DayDetail day={selectedDay} tripId={trip.id} {activeHotels} />
+						<DayDetailReadonly day={selectedDay} />
 					{/if}
 				</div>
 			</div>
 		</div>
 
-		<!-- ── MOBILE (< lg) ─────────────────────────────────────────── -->
+		<!-- Mobile -->
 		<div class="flex flex-1 flex-col overflow-hidden lg:hidden">
-			<!-- Summary card -->
 			<div class="shrink-0 border-b bg-muted/30 p-3">
 				<div class="rounded-xl border bg-card shadow-sm">
 					{#if hasMap}
@@ -156,8 +123,8 @@
 							{/key}
 						</div>
 					{/if}
-					<div class="scrollbar-none flex gap-3 overflow-x-auto p-3">
-						{#each locationGroups as group, i (group.location)}
+					<div class="flex gap-3 overflow-x-auto p-3 scrollbar-none">
+						{#each locationGroups as group, i}
 							<div class="flex shrink-0 items-center gap-2">
 								<span
 									class="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary"
@@ -180,9 +147,9 @@
 				</div>
 			</div>
 
-			<!-- Horizontal day chip selector -->
+			<!-- Day chip selector -->
 			<div class="shrink-0 border-b bg-background">
-				<div class="scrollbar-none flex gap-2 overflow-x-auto px-3 py-2">
+				<div class="flex gap-2 overflow-x-auto px-3 py-2 scrollbar-none">
 					{#each trip.days as day (day.id)}
 						<button
 							onclick={() => (selectedDayId = day.id)}
@@ -192,19 +159,15 @@
 								: 'border-transparent bg-muted/50 hover:bg-muted'}"
 						>
 							<span class="text-xs font-semibold text-primary">Day {day.dayNumber}</span>
-							<span class="max-w-24 truncate font-serif text-sm">{day.location}</span>
+							<span class="max-w-[96px] truncate font-serif text-sm">{day.location}</span>
 						</button>
 					{/each}
-					<div class="flex shrink-0 items-center pl-1">
-						<AddDayDialog tripId={trip.id} {nextDayNumber} />
-					</div>
 				</div>
 			</div>
 
-			<!-- Day detail -->
 			<div class="flex-1 overflow-y-auto">
 				{#if selectedDay}
-					<DayDetail day={selectedDay} tripId={trip.id} {activeHotels} />
+					<DayDetailReadonly day={selectedDay} />
 				{/if}
 			</div>
 		</div>

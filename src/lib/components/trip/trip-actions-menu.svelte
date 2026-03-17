@@ -1,20 +1,20 @@
 <script lang="ts">
 	import * as DropdownMenu from '$ui/dropdown-menu/index.js';
 	import { buttonVariants } from '$ui/button';
-	import { EllipsisVertical, Plus, Pencil, Trash2 } from '@lucide/svelte';
+	import { EllipsisVertical, Pencil, Trash2, Share2 } from '@lucide/svelte';
 
 	import DeleteDialog from '$lib/components/delete-dialog.svelte';
-	import AddItineraryDialog from '$lib/components/itinerary/add-itinerary-dialog.svelte';
 	import EditTripDialog from '$lib/components/trip/edit-trip-dialog.svelte';
-	import type { TripWithItineraries } from '$db/schemas/itinerary';
+	import ShareDialog from '$lib/components/trip/share-dialog.svelte';
+	import type { TripWithBasicDays } from '$db/schemas/itinerary';
 	import { deleteTrip } from '$lib/remotes/trip.remote';
 
-	let { trip }: { trip: TripWithItineraries } = $props();
+	let { trip }: { trip: TripWithBasicDays } = $props();
 
 	let menuOpen = $state(false);
-	let addItineraryOpen = $state(false);
 	let editTripOpen = $state(false);
 	let deleteOpen = $state(false);
+	let shareOpen = $state(false);
 
 	async function handleDeleteTrip() {
 		try {
@@ -35,20 +35,20 @@
 			<DropdownMenu.Item
 				onclick={() => {
 					menuOpen = false;
-					addItineraryOpen = true;
-				}}
-			>
-				<Plus class="size-4" />
-				<span>Add Itinerary</span>
-			</DropdownMenu.Item>
-			<DropdownMenu.Item
-				onclick={() => {
-					menuOpen = false;
 					editTripOpen = true;
 				}}
 			>
 				<Pencil class="size-4" />
 				<span>Edit Trip</span>
+			</DropdownMenu.Item>
+			<DropdownMenu.Item
+				onclick={() => {
+					menuOpen = false;
+					shareOpen = true;
+				}}
+			>
+				<Share2 class="size-4" />
+				<span>Share & Collaborate</span>
 			</DropdownMenu.Item>
 			<DropdownMenu.Separator />
 			<DropdownMenu.Item
@@ -65,6 +65,6 @@
 </DropdownMenu.Root>
 
 <!-- Dialogs rendered outside the menu -->
-<AddItineraryDialog tripId={trip.id} bind:open={addItineraryOpen} showTrigger={false} />
 <EditTripDialog {trip} bind:open={editTripOpen} showTrigger={false} />
+<ShareDialog {trip} bind:open={shareOpen} showTrigger={false} />
 <DeleteDialog label="trip" onDelete={handleDeleteTrip} bind:open={deleteOpen} showTrigger={false} />

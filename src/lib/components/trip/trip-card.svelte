@@ -1,55 +1,50 @@
 <script lang="ts">
 	import TripActionsMenu from '$lib/components/trip/trip-actions-menu.svelte';
-	import { ArrowRight } from '@lucide/svelte';
-	import type { TripWithItineraries } from '$lib/server/db/schemas/itinerary';
+	import type { TripWithBasicDays } from '$lib/server/db/schemas/itinerary';
+	import { groupLocationsByConsecutive } from '$lib/utils';
 
-	let { trip }: { trip: TripWithItineraries } = $props();
+	let {
+		trip,
+		readonly = false
+	}: {
+		trip: TripWithBasicDays;
+		readonly?: boolean;
+	} = $props();
+
+	const locations = $derived(groupLocationsByConsecutive(trip.days));
 </script>
 
-<div class=" rounded-lg border-2 bg-white shadow-sm">
-	<div class="flex items-center justify-between p-6">
-		<div class="flex items-center justify-between">
-			<a href={`/trips/${trip.id}`} title="View trip details">
-				<h2 class="font-serif text-2xl text-muted-foreground">{trip.name}</h2>
-			</a>
+<div class="relative rounded-xl">
+	<a
+		href="/trips/{trip.id}"
+		class="block overflow-hidden rounded-xl border-2 bg-card shadow-sm transition-all hover:border-primary hover:shadow-md"
+	>
+		{#if trip.coverImage}
+			<div class="relative h-40 overflow-hidden">
+				<img src={trip.coverImage} alt="Trip cover" class="h-full w-full object-cover" />
+				<div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+			</div>
+		{:else}
+			<div class="h-40 bg-gradient-to-br from-primary/20 to-primary/5"></div>
+		{/if}
+
+		<div class="px-4 py-3">
+			<h2 class="font-serif text-xl text-foreground">{trip.name}</h2>
+			{#if locations.length > 0}
+				<p class="mt-0.5 truncate text-xs text-muted-foreground">
+					{locations.map((l) => l.location).join(' · ')}
+				</p>
+			{/if}
+			<p class="mt-0.5 text-xs text-muted-foreground">
+				{trip.days.length}
+				{trip.days.length === 1 ? 'day' : 'days'} planned
+			</p>
 		</div>
-		<div>
+	</a>
+
+	{#if !readonly}
+		<div class="absolute right-3 top-3 z-10">
 			<TripActionsMenu {trip} />
 		</div>
-	</div>
-
-	<div class="border-t bg-gray-50/50 px-6 py-4">
-		{#if trip.itineraries.length === 0}
-			<p class="mb-3 text-sm text-muted-foreground">
-				No itineraries yet. Create your first itinerary to start planning!
-			</p>
-		{:else}
-			<div class="space-y-3">
-				<h3 class="text-sm font-medium text-muted-foreground">Itineraries</h3>
-				<div class="space-y-2">
-					{#each trip.itineraries as itinerary}
-						<a
-							href={`/trips/${trip.id}/itineraries/${itinerary.id}`}
-							class="block rounded-md border bg-white p-4 transition-all hover:border-primary hover:shadow-sm"
-						>
-							<div class="flex items-center justify-between">
-								<div>
-									<h4 class="text-sm font-medium text-primary">{itinerary.name}</h4>
-									{#if itinerary.days.length > 0}
-										<p class="text-xs text-muted-foreground">
-											{itinerary.days.length}
-											{itinerary.days.length === 1 ? ' day' : ' days'} planned
-										</p>
-									{:else}
-										<p class="text-xs text-muted-foreground">No days planned yet</p>
-									{/if}
-								</div>
-								<ArrowRight class="size-3 text-muted-foreground" />
-							</div>
-						</a>
-					{/each}
-				</div>
-			</div>
-		{/if}
-	</div>
+	{/if}
 </div>

@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, integer } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, integer, real, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { user } from './auth';
 
@@ -18,27 +18,22 @@ export const tripTable = pgTable('trip', {
 	id: uuid('id').defaultRandom().primaryKey(),
 	userId,
 	name: text('name').notNull(),
-	...timesStamps
-});
-
-export const itineraryTable = pgTable('itinerary', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	name: text('name').notNull(),
-	tripId: uuid('trip_id')
-		.notNull()
-		.references(() => tripTable.id, { onDelete: 'cascade' }),
+	coverImage: text('cover_image'),
+	shareToken: text('share_token').unique(),
 	...timesStamps
 });
 
 export const dayTable = pgTable('day', {
 	id: uuid('id').defaultRandom().primaryKey(),
-	itineraryId: uuid('itinerary_id')
+	tripId: uuid('trip_id')
 		.notNull()
-		.references(() => itineraryTable.id, { onDelete: 'cascade' }),
+		.references(() => tripTable.id, { onDelete: 'cascade' }),
 	dayNumber: integer('day_number').notNull(),
 	overview: text('overview'),
 	date: timestamp('date'),
 	location: text('location').notNull(),
+	latitude: real('latitude'),
+	longitude: real('longitude'),
 
 	...timesStamps
 });
@@ -68,6 +63,7 @@ export const hotelTable = pgTable('hotel', {
 	confirmationNumber: text('confirmation_number'),
 	notes: text('notes'),
 	cost: text('cost'),
+	nights: integer('nights').default(1).notNull(),
 	...timesStamps
 });
 
@@ -88,27 +84,51 @@ export const flightTable = pgTable('flight', {
 	...timesStamps
 });
 
+export const tripCollaboratorTable = pgTable(
+	'trip_collaborator',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		tripId: uuid('trip_id')
+			.notNull()
+			.references(() => tripTable.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		...timesStamps
+	},
+	(t) => [uniqueIndex('trip_collaborator_unique').on(t.tripId, t.userId)]
+);
+
+export const tripInviteTable = pgTable(
+	'trip_invite',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		tripId: uuid('trip_id')
+			.notNull()
+			.references(() => tripTable.id, { onDelete: 'cascade' }),
+		invitedEmail: text('invited_email').notNull(),
+		inviteToken: text('invite_token').notNull().unique(),
+		expiresAt: timestamp('expires_at').notNull(),
+		...timesStamps
+	},
+	(t) => [uniqueIndex('trip_invite_unique').on(t.tripId, t.invitedEmail)]
+);
+
 // Relations
 export const tripRelations = relations(tripTable, ({ many, one }) => ({
-	itineraries: many(itineraryTable),
+	days: many(dayTable),
 	user: one(user, {
 		fields: [tripTable.userId],
 		references: [user.id]
-	})
-}));
-
-export const itineraryRelations = relations(itineraryTable, ({ one, many }) => ({
-	trip: one(tripTable, {
-		fields: [itineraryTable.tripId],
-		references: [tripTable.id]
 	}),
-	days: many(dayTable)
+	collaborators: many(tripCollaboratorTable),
+	invites: many(tripInviteTable)
 }));
 
 export const dayRelations = relations(dayTable, ({ one, many }) => ({
-	itinerary: one(itineraryTable, {
-		fields: [dayTable.itineraryId],
-		references: [itineraryTable.id]
+	trip: one(tripTable, {
+		fields: [dayTable.tripId],
+		references: [tripTable.id]
 	}),
 	activities: many(activityTable),
 	hotels: many(hotelTable),
@@ -136,21 +156,33 @@ export const flightRelations = relations(flightTable, ({ one }) => ({
 	})
 }));
 
+export const tripCollaboratorRelations = relations(tripCollaboratorTable, ({ one }) => ({
+	trip: one(tripTable, {
+		fields: [tripCollaboratorTable.tripId],
+		references: [tripTable.id]
+	}),
+	user: one(user, {
+		fields: [tripCollaboratorTable.userId],
+		references: [user.id]
+	})
+}));
+
+export const tripInviteRelations = relations(tripInviteTable, ({ one }) => ({
+	trip: one(tripTable, {
+		fields: [tripInviteTable.tripId],
+		references: [tripTable.id]
+	})
+}));
+
 export type Day = typeof dayTable.$inferSelect;
-export type Itinerary = typeof itineraryTable.$inferSelect;
 export type Activity = typeof activityTable.$inferSelect;
 export type Hotel = typeof hotelTable.$inferSelect;
 export type Flight = typeof flightTable.$inferSelect;
 
 export type Trip = typeof tripTable.$inferSelect;
 export type NewTrip = typeof tripTable.$inferInsert;
-
-// Trip with relations
-export type TripWithItineraries = Trip & {
-	itineraries: (Itinerary & {
-		days: Day[];
-	})[];
-};
+export type TripCollaborator = typeof tripCollaboratorTable.$inferSelect;
+export type TripInvite = typeof tripInviteTable.$inferSelect;
 
 export type DayWithActivities = Day & {
 	activities: Activity[];
@@ -158,10 +190,10 @@ export type DayWithActivities = Day & {
 	flights: Flight[];
 };
 
-export type ItineraryWithDays = Itinerary & {
-	days: DayWithActivities[];
+export type TripWithBasicDays = Trip & {
+	days: Day[];
 };
 
-export type ItineraryWithBasicDays = Itinerary & {
-	days: Day[];
+export type TripWithDays = Trip & {
+	days: DayWithActivities[];
 };

@@ -8,9 +8,9 @@
 	import { Plus, Trash } from '@lucide/svelte';
 
 	let {
-		itineraryId
+		tripId
 	}: {
-		itineraryId: string;
+		tripId: string;
 	} = $props();
 
 	let days = $state([0, 1, 2]);
@@ -71,7 +71,7 @@
 
 				<!-- hidden fields -->
 				<input {...addDays.fields.days[i].dayNumber.as('number')} class="hidden" value={i + 1} />
-				<input type="hidden" name={`days[${i}].itineraryId`} value={itineraryId} />
+				<input type="hidden" name={`days[${i}].tripId`} value={tripId} />
 			</div>
 		{/each}
 

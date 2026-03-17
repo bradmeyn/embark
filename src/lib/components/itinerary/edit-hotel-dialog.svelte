@@ -4,18 +4,18 @@
 	import Input from '$ui/input/input.svelte';
 	import * as Field from '$ui/field';
 	import { editHotel } from '$lib/remotes/hotel.remote';
-	import { getItinerary } from '$lib/remotes/itinerary.remote';
+	import { getTrip } from '$lib/remotes/trip.remote';
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import type { Hotel } from '$db/schemas/itinerary';
 
 	let {
 		hotel,
-		itineraryId,
+		tripId,
 		open = $bindable(false),
 		showTrigger = true
 	}: {
 		hotel: Hotel;
-		itineraryId: string;
+		tripId: string;
 		open?: boolean;
 		showTrigger?: boolean;
 	} = $props();
@@ -24,10 +24,8 @@
 
 	async function onSubmitEnhance({ submit }: any) {
 		try {
-			await submit().updates(getItinerary(itineraryId));
-			if (hotelForm.result?.success) {
-				open = false;
-			}
+			await submit().updates(getTrip(tripId));
+			open = false;
 		} catch (e) {
 			console.error('Error editing hotel', e);
 		}
@@ -77,18 +75,19 @@
 
 			<div class="grid grid-cols-2 gap-2">
 				<Field.Field>
-					<Field.Label for="confirmationNumber">Confirmation #</Field.Label>
+					<Field.Label for="nights">Nights</Field.Label>
 					<Input
-						id="confirmationNumber"
-						{...hotelForm.fields.confirmationNumber.as('text')}
-						placeholder="Optional"
-						value={hotel.confirmationNumber ?? ''}
+						id="nights"
+						{...hotelForm.fields.nights.as('number')}
+						min="1"
+						step="1"
+						value={hotel.nights ?? 1}
 					/>
 					<Field.Error />
 				</Field.Field>
 
 				<Field.Field>
-					<Field.Label for="cost">Cost</Field.Label>
+					<Field.Label for="cost">Total Cost</Field.Label>
 					<Input
 						id="cost"
 						{...hotelForm.fields.cost.as('number')}
@@ -100,17 +99,18 @@
 				</Field.Field>
 			</div>
 
-			<Field.Field>
-				<Field.Label for="notes">Notes</Field.Label>
-				<textarea
-					id="notes"
-					{...hotelForm.fields.notes.as('text')}
-					rows="2"
-					class="w-full rounded-md border p-2"
-					placeholder="Any additional notes...">{hotel.notes ?? ''}</textarea
-				>
-				<Field.Error />
-			</Field.Field>
+			<div class="grid grid-cols-2 gap-2">
+				<Field.Field>
+					<Field.Label for="confirmationNumber">Confirmation #</Field.Label>
+					<Input
+						id="confirmationNumber"
+						{...hotelForm.fields.confirmationNumber.as('text')}
+						placeholder="Optional"
+						value={hotel.confirmationNumber ?? ''}
+					/>
+					<Field.Error />
+				</Field.Field>
+			</div>
 
 			<div class="flex justify-end gap-2">
 				<Dialog.Footer>

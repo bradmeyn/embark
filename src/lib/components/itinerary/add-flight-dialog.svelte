@@ -4,29 +4,27 @@
 	import Input from '$ui/input/input.svelte';
 	import * as Field from '$ui/field';
 	import { addFlight } from '$lib/remotes/flight.remote';
-	import { getItinerary } from '$lib/remotes/itinerary.remote';
+	import { getTrip } from '$lib/remotes/trip.remote';
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import { Plus } from '@lucide/svelte';
 
 	let {
 		dayId,
-		itineraryId,
+		tripId,
 		open = $bindable(false),
 		showTrigger = true
 	}: {
 		dayId: string;
-		itineraryId: string;
+		tripId: string;
 		open?: boolean;
 		showTrigger?: boolean;
 	} = $props();
 
 	async function onSubmitEnhance({ form, submit }: any) {
 		try {
-			await submit().updates(getItinerary(itineraryId));
+			await submit().updates(getTrip(tripId));
 			form.reset();
-			if (addFlight.result?.success) {
-				open = false;
-			}
+			open = false;
 		} catch (e) {
 			console.error('Error adding flight', e);
 		}

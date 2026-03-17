@@ -3,16 +3,15 @@
 	import { deleteActivity } from '$lib/remotes/activity.remote';
 	import { DollarSign, MapPin, Trash2 } from '@lucide/svelte';
 	import DeleteDialog from '../delete-dialog.svelte';
-	import { Clock3 } from '@lucide/svelte';
-	import { getItinerary } from '$lib/remotes/itinerary.remote';
+	import { getTrip } from '$lib/remotes/trip.remote';
 	import Button from '$ui/button/button.svelte';
 
 	let {
 		activity,
-		itineraryId
+		tripId
 	}: {
 		activity: Activity;
-		itineraryId: string;
+		tripId: string;
 	} = $props();
 
 	let deleteDialogOpen = $state(false);
@@ -33,21 +32,18 @@
 
 	async function handleDeleteActivity(activityId: string) {
 		try {
-			await deleteActivity({ activityId }).updates(getItinerary(itineraryId));
+			await deleteActivity({ activityId }).updates(getTrip(tripId));
 		} finally {
 		}
 	}
 </script>
 
-<li class="card flex items-start justify-between p-4 shadow-sm">
+<li class="flex items-start justify-between border-b py-2 last:border-0">
 	<div>
-		<p
-			class="flex items-center gap-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
-		>
-			<Clock3 class="size-3" />
+		<p class="text-xs text-muted-foreground">
 			{formatTime(activity.time) ?? 'Anytime'}
 		</p>
-		<h3 class="text-lg font-semibold text-foreground">{activity.name}</h3>
+		<h3 class="font-medium text-foreground">{activity.name}</h3>
 		{#if activity.description}
 			<p class="mt-1 text-sm text-muted-foreground">{activity.description}</p>
 		{/if}

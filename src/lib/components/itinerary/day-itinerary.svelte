@@ -2,7 +2,7 @@
 	import * as Accordion from '$ui/accordion/index.js';
 	import type { DayWithActivities } from '$db/schemas/itinerary';
 	import { deleteDay } from '$lib/remotes/day.remote';
-	import { getItinerary } from '$lib/remotes/itinerary.remote';
+	import { getTrip } from '$lib/remotes/trip.remote';
 	import AddActivityDialog from './add-activity-dialog.svelte';
 	import AddHotelDialog from './add-hotel-dialog.svelte';
 	import AddFlightDialog from './add-flight-dialog.svelte';
@@ -16,10 +16,10 @@
 
 	let {
 		day,
-		itineraryId
+		tripId
 	}: {
 		day: DayWithActivities;
-		itineraryId: string;
+		tripId: string;
 	} = $props();
 
 	let addActivityOpen = $state(false);
@@ -45,7 +45,7 @@
 
 	async function handleDeleteDay() {
 		try {
-			await deleteDay({ dayId: day.id }).updates(getItinerary(itineraryId));
+			await deleteDay({ dayId: day.id }).updates(getTrip(tripId));
 		} finally {
 		}
 	}
@@ -56,7 +56,7 @@
 		class="card flex items-center justify-between border px-4 py-4 text-left shadow-sm hover:border-primary"
 	>
 		<div class="flex-1">
-			<div class="flex items-center gap-2">
+			<div class="flex flex-wrap items-center gap-2">
 				<span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
 					Day {day.dayNumber}
 				</span>
@@ -64,6 +64,27 @@
 					{day.activities.length}
 					{day.activities.length === 1 ? 'activity' : 'activities'}
 				</span>
+				{#if day.date}
+					<span class="rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
+						{new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+					</span>
+				{/if}
+				{#if day.flights.length > 0}
+					<span
+						class="flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-medium text-sky-700"
+					>
+						<Plane class="size-3" />
+						{day.flights.length}
+					</span>
+				{/if}
+				{#if day.hotels.length > 0}
+					<span
+						class="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700"
+					>
+						<Building2 class="size-3" />
+						{day.hotels.length}
+					</span>
+				{/if}
 			</div>
 			<p class="mt-1 font-serif text-xl text-foreground">{day.location}</p>
 			{#if day.overview}
@@ -118,7 +139,7 @@
 				</div>
 				<div class="space-y-3">
 					{#each day.flights as flight}
-						<FlightCard {flight} {itineraryId} />
+						<FlightCard {flight} {tripId} />
 					{/each}
 				</div>
 			</section>
@@ -131,7 +152,7 @@
 					<Building2 class="size-4 text-amber-600" />
 					<h2 class="font-serif text-lg">Accommodation</h2>
 				</div>
-				<HotelCard hotel={day.hotels[0]} {itineraryId} />
+				<HotelCard hotel={day.hotels[0]} {tripId} />
 			</section>
 		{/if}
 
@@ -152,14 +173,17 @@
 
 			{#if sortedActivities.length === 0}
 				<div
-					class="rounded-lg border border-dashed border-primary/20 bg-primary/5 p-4 text-center text-sm text-muted-foreground"
+					class="rounded-lg border border-dashed border-primary/30 bg-primary/5 px-4 py-6 text-center"
 				>
-					Add your first activity to start shaping this day.
+					<p class="text-sm font-medium text-primary/60">No activities yet</p>
+					<p class="mt-1 text-xs text-muted-foreground">
+						Add your first activity to start shaping this day.
+					</p>
 				</div>
 			{:else}
 				<ol class="relative space-y-3">
 					{#each sortedActivities as activity}
-						<ActivityCard {activity} {itineraryId} />
+						<ActivityCard {activity} {tripId} />
 					{/each}
 				</ol>
 			{/if}
@@ -196,10 +220,10 @@
 </Accordion.Item>
 
 <!-- Dialogs rendered outside the accordion -->
-<AddActivityDialog dayId={day.id} {itineraryId} bind:open={addActivityOpen} showTrigger={false} />
-<AddHotelDialog dayId={day.id} {itineraryId} bind:open={addHotelOpen} showTrigger={false} />
-<AddFlightDialog dayId={day.id} {itineraryId} bind:open={addFlightOpen} showTrigger={false} />
-<EditDayDialog {day} {itineraryId} bind:open={editDayOpen} showTrigger={false} />
+<AddActivityDialog dayId={day.id} {tripId} bind:open={addActivityOpen} showTrigger={false} />
+<AddHotelDialog dayId={day.id} {tripId} bind:open={addHotelOpen} showTrigger={false} />
+<AddFlightDialog dayId={day.id} {tripId} bind:open={addFlightOpen} showTrigger={false} />
+<EditDayDialog {day} {tripId} bind:open={editDayOpen} showTrigger={false} />
 <DeleteDialog
 	label="day"
 	onDelete={handleDeleteDay}

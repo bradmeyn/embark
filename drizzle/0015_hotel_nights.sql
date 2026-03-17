@@ -1,0 +1,1 @@
+ALTER TABLE "hotel" ADD COLUMN IF NOT EXISTS "nights" integer DEFAULT 1 NOT NULL;

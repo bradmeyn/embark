@@ -5,6 +5,8 @@ import { db } from '$db';
 import { activityTable, dayTable } from '$db/schemas/itinerary';
 import { eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
+import { assertTripAccess } from '$lib/server/trip-access';
+
 const activitySchema = z.object({
 	name: z.string().min(1, 'Activity name is required'),
 	description: z.string().optional(),
@@ -23,26 +25,20 @@ const normalizeTimeInput = (value?: string | null) => {
 	const date = new Date(input);
 	return Number.isNaN(date.getTime()) ? null : date;
 };
+
 export const addActivity = form(
 	activitySchema,
 	async ({ name, description, cost, startTime, location, dayId }) => {
 		const user = await getCurrentUser();
 		if (!user) error(401, 'Unauthorized');
 
-		// Verify the day exists and belongs to the current user via its itinerary->trip
 		const day = await db.query.dayTable.findFirst({
-			where: eq(dayTable.id, dayId),
-			with: {
-				itinerary: {
-					with: {
-						trip: true
-					}
-				}
-			}
+			where: eq(dayTable.id, dayId)
 		});
 
 		if (!day) error(404, 'Day not found');
-		if (day.itinerary.trip.userId !== user.id) error(403, 'Forbidden');
+
+		await assertTripAccess(day.tripId, user.id);
 
 		const [newActivity] = await db
 			.insert(activityTable)
@@ -66,16 +62,13 @@ export const getActivities = query(z.string(), async (dayId: string) => {
 		error(401, 'Unauthorized');
 	}
 
-	// ensure day belongs to user
 	const day = await db.query.dayTable.findFirst({
-		where: eq(dayTable.id, dayId),
-		with: {
-			itinerary: { with: { trip: true } }
-		}
+		where: eq(dayTable.id, dayId)
 	});
 
 	if (!day) error(404, 'Day not found');
-	if (day.itinerary.trip.userId !== user.id) error(403, 'Forbidden');
+
+	await assertTripAccess(day.tripId, user.id);
 
 	const activities = await db.query.activityTable.findMany({
 		where: eq(activityTable.dayId, dayId),
@@ -91,16 +84,16 @@ export const deleteActivity = command(
 		const user = await getCurrentUser();
 		if (!user) error(401, 'Unauthorized');
 
-		// fetch activity with its day->itinerary->trip to verify ownership
 		const activity = await db.query.activityTable.findFirst({
 			where: eq(activityTable.id, activityId),
 			with: {
-				day: { with: { itinerary: { with: { trip: true } } } }
+				day: true
 			}
 		});
 
 		if (!activity) error(404, 'Activity not found');
-		if (activity.day.itinerary.trip.userId !== user.id) error(403, 'Forbidden');
+
+		await assertTripAccess(activity.day.tripId, user.id);
 
 		await db.delete(activityTable).where(eq(activityTable.id, activityId));
 

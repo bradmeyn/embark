@@ -5,41 +5,52 @@ import { db } from '$db';
 import { dayTable } from '$db/schemas/itinerary';
 import { error } from '@sveltejs/kit';
 import { and, eq, gt, sql } from 'drizzle-orm';
+import { geocodeLocation } from '$lib/server/geocode';
+import { assertTripAccess } from '$lib/server/trip-access';
 
 const daySchema = z.object({
 	dayNumber: z.number().int().min(1, 'Day number must be at least 1'),
 	overview: z.string().optional(),
 	location: z.string().min(1, 'Location is required'),
-	itineraryId: z.string()
+	tripId: z.string()
 });
 
 const daysArraySchema = z.object({
 	days: z.array(daySchema)
 });
 
-export const addDay = form(daySchema, async ({ location, itineraryId, dayNumber }) => {
+export const addDay = form(daySchema, async ({ location, tripId, dayNumber }) => {
 	const user = await getCurrentUser();
 	if (!user) error(401, 'Unauthorized');
+
+	await assertTripAccess(tripId, user.id);
+
+	const coords = await geocodeLocation(location);
 
 	await db
 		.insert(dayTable)
 		.values({
 			dayNumber,
 			location,
-			itineraryId
+			tripId,
+			latitude: coords?.lat ?? null,
+			longitude: coords?.lng ?? null
 		})
 		.returning();
 
 	return { success: true };
 });
 
-export const getDays = query(z.string(), async (itineraryId: string) => {
+export const getDays = query(z.string(), async (tripId: string) => {
 	const user = await getCurrentUser();
 	if (!user) {
 		error(401, 'Unauthorized');
 	}
+
+	await assertTripAccess(tripId, user.id);
+
 	const days = await db.query.dayTable.findMany({
-		where: eq(dayTable.itineraryId, itineraryId),
+		where: eq(dayTable.tripId, tripId),
 		orderBy: (day, { asc }) => [asc(day.dayNumber)]
 	});
 
@@ -52,13 +63,21 @@ export const addDays = form(daysArraySchema, async ({ days }) => {
 		error(401, 'Unauthorized');
 	}
 
+	if (days.length > 0) {
+		await assertTripAccess(days[0].tripId, user.id);
+	}
+
+	const coordsResults = await Promise.all(days.map((d) => geocodeLocation(d.location)));
+
 	const inserted = await db
 		.insert(dayTable)
 		.values(
-			days.map(({ dayNumber, location, itineraryId }) => ({
+			days.map(({ dayNumber, location, tripId }, i) => ({
 				dayNumber,
 				location,
-				itineraryId
+				tripId,
+				latitude: coordsResults[i]?.lat ?? null,
+				longitude: coordsResults[i]?.lng ?? null
 			}))
 		)
 		.returning();
@@ -73,23 +92,14 @@ export const deleteDay = command(z.object({ dayId: z.string() }), async ({ dayId
 	}
 
 	const day = await db.query.dayTable.findFirst({
-		where: eq(dayTable.id, dayId),
-		with: {
-			itinerary: {
-				with: {
-					trip: true
-				}
-			}
-		}
+		where: eq(dayTable.id, dayId)
 	});
 
 	if (!day) {
 		error(404, 'Day not found');
 	}
 
-	if (day.itinerary.trip.userId !== user.id) {
-		error(403, 'Forbidden');
-	}
+	await assertTripAccess(day.tripId, user.id);
 
 	await db.delete(dayTable).where(eq(dayTable.id, dayId));
 
@@ -98,7 +108,7 @@ export const deleteDay = command(z.object({ dayId: z.string() }), async ({ dayId
 		.set({
 			dayNumber: sql`${dayTable.dayNumber} - 1`
 		})
-		.where(and(eq(dayTable.itineraryId, day.itineraryId), gt(dayTable.dayNumber, day.dayNumber)));
+		.where(and(eq(dayTable.tripId, day.tripId), gt(dayTable.dayNumber, day.dayNumber)));
 
 	return { success: true };
 });
@@ -113,31 +123,33 @@ export const editDay = form(editDaySchema, async ({ id, location, overview }) =>
 	const user = await getCurrentUser();
 	if (!user) error(401, 'Unauthorized');
 
-	console.log('Editing day:', id);
-
 	const day = await db.query.dayTable.findFirst({
-		where: eq(dayTable.id, id),
-		with: {
-			itinerary: {
-				with: {
-					trip: true
-				}
-			}
-		}
+		where: eq(dayTable.id, id)
 	});
 
 	if (!day) error(404, 'Day not found');
-	if (day.itinerary.trip.userId !== user.id) error(403, 'Forbidden');
 
-	const result = await db
-		.update(dayTable)
-		.set({
-			location,
-			overview: overview ?? null
-		})
-		.where(eq(dayTable.id, id))
-		.returning();
-	console.log('Update result:', result);
+	await assertTripAccess(day.tripId, user.id);
+
+	const locationChanged = location !== day.location;
+	const coords = locationChanged ? await geocodeLocation(location) : null;
+
+	const updateData: {
+		location: string;
+		overview: string | null;
+		latitude?: number | null;
+		longitude?: number | null;
+	} = {
+		location,
+		overview: overview ?? null
+	};
+
+	if (locationChanged) {
+		updateData.latitude = coords?.lat ?? null;
+		updateData.longitude = coords?.lng ?? null;
+	}
+
+	await db.update(dayTable).set(updateData).where(eq(dayTable.id, id)).returning();
 
 	return { success: true };
 });

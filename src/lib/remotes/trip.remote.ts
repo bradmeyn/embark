@@ -2,58 +2,67 @@ import { command, form, query } from '$app/server';
 import { z } from 'zod';
 import { getCurrentUser } from '$lib/remotes/auth.remote';
 import { db } from '$db';
-import { itineraryTable, tripTable } from '$db/schemas/itinerary';
+import { tripTable, tripCollaboratorTable } from '$db/schemas/itinerary';
 import { eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
+import { assertTripAccess, assertTripOwner } from '$lib/server/trip-access';
 
 const tripSchema = z.object({
 	name: z.string().min(1, 'Name is required')
 });
 
-export const getTrips = query(async () => {
+export const getMyTrips = query(async () => {
 	const user = await getCurrentUser();
 	if (!user) error(401, 'Unauthorized');
 
 	const trips = await db.query.tripTable.findMany({
 		where: eq(tripTable.userId, user.id),
 		with: {
-			itineraries: {
-				with: {
-					days: true
-				}
-			}
+			days: true
 		}
 	});
 
 	return trips;
 });
 
+export const getSharedTrips = query(async () => {
+	const user = await getCurrentUser();
+	if (!user) error(401, 'Unauthorized');
+
+	const rows = await db.query.tripCollaboratorTable.findMany({
+		where: eq(tripCollaboratorTable.userId, user.id),
+		with: {
+			trip: {
+				with: { days: true }
+			}
+		}
+	});
+
+	return rows.map((r) => r.trip);
+});
+
 export const getTrip = query(z.string(), async (id: string) => {
 	const user = await getCurrentUser();
 	if (!user) error(401, 'Unauthorized');
 
+	await assertTripAccess(id, user.id);
+
 	const trip = await db.query.tripTable.findFirst({
 		where: eq(tripTable.id, id),
 		with: {
-			itineraries: {
+			days: {
 				with: {
-					days: {
-						with: {
-							activities: true
-						}
-					}
-				}
+					activities: true,
+					hotels: true,
+					flights: true
+				},
+				orderBy: (day, { asc }) => [asc(day.dayNumber)]
 			}
 		}
 	});
 
 	if (!trip) {
 		error(404, 'Trip not found');
-	}
-
-	// Check if user owns this trip
-	if (trip.userId !== user.id) {
-		error(403, 'Forbidden');
 	}
 
 	return trip;
@@ -63,7 +72,7 @@ export const addTrip = form(tripSchema, async ({ name }) => {
 	const user = await getCurrentUser();
 	if (!user) error(401, 'Unauthorized');
 
-	const [newTrip] = await db
+	await db
 		.insert(tripTable)
 		.values({
 			name,
@@ -71,41 +80,24 @@ export const addTrip = form(tripSchema, async ({ name }) => {
 		})
 		.returning();
 
-	await db.insert(itineraryTable).values({
-		name: 'Itinerary 1',
-		tripId: newTrip.id
-	});
 	return { success: true };
 });
 
 export const editTrip = form(
 	z.object({
 		id: z.string(),
-		name: z.string().min(1, 'Name is required')
+		name: z.string().min(1, 'Name is required'),
+		coverImage: z.string().url().optional().or(z.literal(''))
 	}),
-	async ({ id, name }) => {
-		console.log('Editing trip:', id, name);
-		await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate delay
-
+	async ({ id, name, coverImage }) => {
 		const user = await getCurrentUser();
 		if (!user) error(401, 'Unauthorized');
 
-		const trip = await db.query.tripTable.findFirst({
-			where: eq(tripTable.id, id)
-		});
-
-		if (!trip) {
-			error(404, 'Trip not found');
-		}
-
-		// Check if user owns this trip
-		if (trip.userId !== user.id) {
-			error(403, 'Forbidden');
-		}
+		await assertTripOwner(id, user.id);
 
 		const [updatedTrip] = await db
 			.update(tripTable)
-			.set({ name })
+			.set({ name, coverImage: coverImage || null })
 			.where(eq(tripTable.id, id))
 			.returning();
 
@@ -121,22 +113,11 @@ export const deleteTrip = command(
 		const user = await getCurrentUser();
 		if (!user) error(401, 'Unauthorized');
 
-		const trip = await db.query.tripTable.findFirst({
-			where: eq(tripTable.id, id)
-		});
-
-		if (!trip) {
-			error(404, 'Trip not found');
-		}
-
-		// Check if user owns this trip
-		if (trip.userId !== user.id) {
-			error(403, 'Forbidden');
-		}
+		await assertTripOwner(id, user.id);
 
 		await db.delete(tripTable).where(eq(tripTable.id, id));
 
-		await getTrips().refresh();
+		await getMyTrips().refresh();
 
 		return { success: true };
 	}

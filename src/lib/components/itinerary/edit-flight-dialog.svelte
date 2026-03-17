@@ -4,18 +4,18 @@
 	import Input from '$ui/input/input.svelte';
 	import * as Field from '$ui/field';
 	import { editFlight } from '$lib/remotes/flight.remote';
-	import { getItinerary } from '$lib/remotes/itinerary.remote';
+	import { getTrip } from '$lib/remotes/trip.remote';
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import type { Flight } from '$db/schemas/itinerary';
 
 	let {
 		flight,
-		itineraryId,
+		tripId,
 		open = $bindable(false),
 		showTrigger = true
 	}: {
 		flight: Flight;
-		itineraryId: string;
+		tripId: string;
 		open?: boolean;
 		showTrigger?: boolean;
 	} = $props();
@@ -24,10 +24,8 @@
 
 	async function onSubmitEnhance({ submit }: any) {
 		try {
-			await submit().updates(getItinerary(itineraryId));
-			if (flightForm.result?.success) {
-				open = false;
-			}
+			await submit().updates(getTrip(tripId));
+			open = false;
 		} catch (e) {
 			console.error('Error editing flight', e);
 		}

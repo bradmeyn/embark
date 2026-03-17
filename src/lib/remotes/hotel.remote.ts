@@ -3,8 +3,24 @@ import { z } from 'zod';
 import { getCurrentUser } from '$lib/remotes/auth.remote';
 import { db } from '$db';
 import { hotelTable, dayTable } from '$db/schemas/itinerary';
-import { eq } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
+import { assertTripAccess } from '$lib/server/trip-access';
+
+function getMaxNightsForDay(days: Array<{ id: string; dayNumber: number; location: string }>, dayId: string) {
+	const startIndex = days.findIndex((d) => d.id === dayId);
+	if (startIndex === -1) return 0;
+
+	const startLocation = days[startIndex]?.location;
+	let count = 0;
+
+	for (let i = startIndex; i < days.length; i++) {
+		if (days[i]?.location !== startLocation) break;
+		count += 1;
+	}
+
+	return count;
+}
 
 const addHotelSchema = z.object({
 	dayId: z.string(),
@@ -14,7 +30,8 @@ const addHotelSchema = z.object({
 	checkOut: z.string().optional(),
 	confirmationNumber: z.string().optional(),
 	notes: z.string().optional(),
-	cost: z.number().min(0).optional()
+	cost: z.number().min(0).optional(),
+	nights: z.number().int().min(1).optional()
 });
 
 const editHotelSchema = z.object({
@@ -25,29 +42,38 @@ const editHotelSchema = z.object({
 	checkOut: z.string().optional(),
 	confirmationNumber: z.string().optional(),
 	notes: z.string().optional(),
-	cost: z.number().min(0).optional()
+	cost: z.number().min(0).optional(),
+	nights: z.number().int().min(1).optional()
 });
 
 export const addHotel = form(
 	addHotelSchema,
-	async ({ dayId, name, address, checkIn, checkOut, confirmationNumber, notes, cost }) => {
+	async ({ dayId, name, address, checkIn, checkOut, confirmationNumber, notes, cost, nights }) => {
 		const user = await getCurrentUser();
 		if (!user) error(401, 'Unauthorized');
 
-		// Verify the day exists and belongs to the current user
 		const day = await db.query.dayTable.findFirst({
-			where: eq(dayTable.id, dayId),
-			with: {
-				itinerary: {
-					with: {
-						trip: true
-					}
-				}
-			}
+			where: eq(dayTable.id, dayId)
 		});
 
 		if (!day) error(404, 'Day not found');
-		if (day.itinerary.trip.userId !== user.id) error(403, 'Forbidden');
+
+		await assertTripAccess(day.tripId, user.id);
+
+		const tripDays = await db.query.dayTable.findMany({
+			where: eq(dayTable.tripId, day.tripId),
+			orderBy: [asc(dayTable.dayNumber)]
+		});
+
+		const requestedNights = nights ?? 1;
+		const maxNights = getMaxNightsForDay(tripDays, day.id);
+
+		if (requestedNights > maxNights) {
+			error(
+				400,
+				`Invalid stay length. You can select up to ${maxNights} night${maxNights === 1 ? '' : 's'} starting on ${day.location}.`
+			);
+		}
 
 		const [newHotel] = await db
 			.insert(hotelTable)
@@ -59,7 +85,8 @@ export const addHotel = form(
 				checkOut: checkOut ?? null,
 				confirmationNumber: confirmationNumber ?? null,
 				notes: notes ?? null,
-				cost: cost != null ? String(cost) : null
+				cost: cost != null ? String(cost) : null,
+				nights: nights ?? 1
 			})
 			.returning();
 
@@ -69,27 +96,35 @@ export const addHotel = form(
 
 export const editHotel = form(
 	editHotelSchema,
-	async ({ id, name, address, checkIn, checkOut, confirmationNumber, notes, cost }) => {
+	async ({ id, name, address, checkIn, checkOut, confirmationNumber, notes, cost, nights }) => {
 		const user = await getCurrentUser();
 		if (!user) error(401, 'Unauthorized');
 
 		const hotel = await db.query.hotelTable.findFirst({
 			where: eq(hotelTable.id, id),
 			with: {
-				day: {
-					with: {
-						itinerary: {
-							with: {
-								trip: true
-							}
-						}
-					}
-				}
+				day: true
 			}
 		});
 
 		if (!hotel) error(404, 'Hotel not found');
-		if (hotel.day.itinerary.trip.userId !== user.id) error(403, 'Forbidden');
+
+		await assertTripAccess(hotel.day.tripId, user.id);
+
+		const tripDays = await db.query.dayTable.findMany({
+			where: eq(dayTable.tripId, hotel.day.tripId),
+			orderBy: [asc(dayTable.dayNumber)]
+		});
+
+		const requestedNights = nights ?? 1;
+		const maxNights = getMaxNightsForDay(tripDays, hotel.dayId);
+
+		if (requestedNights > maxNights) {
+			error(
+				400,
+				`Invalid stay length. You can select up to ${maxNights} night${maxNights === 1 ? '' : 's'} starting on ${hotel.day.location}.`
+			);
+		}
 
 		await db
 			.update(hotelTable)
@@ -100,7 +135,8 @@ export const editHotel = form(
 				checkOut: checkOut ?? null,
 				confirmationNumber: confirmationNumber ?? null,
 				notes: notes ?? null,
-				cost: cost != null ? String(cost) : null
+				cost: cost != null ? String(cost) : null,
+				nights: nights ?? 1
 			})
 			.where(eq(hotelTable.id, id));
 
@@ -115,20 +151,13 @@ export const deleteHotel = command(z.object({ hotelId: z.string() }), async ({ h
 	const hotel = await db.query.hotelTable.findFirst({
 		where: eq(hotelTable.id, hotelId),
 		with: {
-			day: {
-				with: {
-					itinerary: {
-						with: {
-							trip: true
-						}
-					}
-				}
-			}
+			day: true
 		}
 	});
 
 	if (!hotel) error(404, 'Hotel not found');
-	if (hotel.day.itinerary.trip.userId !== user.id) error(403, 'Forbidden');
+
+	await assertTripAccess(hotel.day.tripId, user.id);
 
 	await db.delete(hotelTable).where(eq(hotelTable.id, hotelId));
 
