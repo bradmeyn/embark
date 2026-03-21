@@ -55,9 +55,9 @@
 			rows = rows.map((existing, i) =>
 				i === index
 					? {
-						...existing,
-						location: suggestion.location ?? existing.location
-					}
+							...existing,
+							location: suggestion.location ?? existing.location
+						}
 					: existing
 			);
 		} catch (e) {

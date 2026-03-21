@@ -78,7 +78,13 @@
 			<input type="hidden" name="id" value={day.id} />
 
 			<div class="flex justify-end">
-				<Button type="button" variant="outline" size="sm" onclick={suggestDay} disabled={suggesting}>
+				<Button
+					type="button"
+					variant="outline"
+					size="sm"
+					onclick={suggestDay}
+					disabled={suggesting}
+				>
 					{#if suggesting}
 						<Spinner class="size-4" />
 					{:else}
@@ -108,8 +114,8 @@
 					bind:value={overview}
 					rows="2"
 					class="w-full rounded-md border p-2"
-					placeholder="Brief description of this day..."></textarea
-				>
+					placeholder="Brief description of this day..."
+				></textarea>
 				<Field.Error />
 			</Field.Field>
 

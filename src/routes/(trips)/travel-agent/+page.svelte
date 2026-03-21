@@ -13,7 +13,7 @@
 		saveGeneratedTrip,
 		type GeneratedTripDraft,
 		type TripAgentInput
-	} from '$lib/remotes/ai.remote';
+	} from '$lib/remotes/travel-agent.remote';
 
 	type PreviewDay = GeneratedTripDraft['days'][number] & {
 		latitude?: number | null;
@@ -46,7 +46,7 @@
 			? draft.days.reduce(
 					(acc, day) => acc + day.hotels.reduce((n, hotel) => n + (hotel.nights ?? 1), 0),
 					0
-			  )
+				)
 			: 0
 	);
 
@@ -66,7 +66,7 @@
 					activities: [],
 					hotels: [],
 					flights: []
-			  })) as DayWithActivities[])
+				})) as DayWithActivities[])
 			: []
 	);
 
@@ -111,7 +111,7 @@
 	}
 </script>
 
-<div class="mx-auto h-full max-w-6xl overflow-y-auto px-4 pb-10 pt-6">
+<div class="mx-auto h-full max-w-6xl overflow-y-auto px-4 pt-6 pb-10">
 	<div class="mb-6 text-center">
 		<p class="text-xs font-semibold tracking-wide text-primary uppercase">AI Planner</p>
 		<h1 class="font-serif text-3xl">Travel Agent</h1>
@@ -120,17 +120,31 @@
 		</p>
 	</div>
 
-	<section class="rounded-xl border bg-card p-4 shadow-sm {hasGenerated ? '' : 'mx-auto max-w-3xl'}">
+	<section
+		class="rounded-xl border bg-card p-4 shadow-sm {hasGenerated ? '' : 'mx-auto max-w-3xl'}"
+	>
 		<form class="space-y-3" onsubmit={onGenerate}>
 			<div class="grid gap-3 md:grid-cols-2 lg:grid-cols-6">
 				<Field.Field class="lg:col-span-2">
 					<Field.Label for="destinations">Destination(s)</Field.Label>
-					<Input id="destinations" bind:value={formState.destinations} placeholder="Tokyo + Kyoto" required />
+					<Input
+						id="destinations"
+						bind:value={formState.destinations}
+						placeholder="Tokyo + Kyoto"
+						required
+					/>
 				</Field.Field>
 
 				<Field.Field>
 					<Field.Label for="numberOfDays">Days</Field.Label>
-					<Input id="numberOfDays" type="number" bind:value={formState.numberOfDays} min="1" max="30" required />
+					<Input
+						id="numberOfDays"
+						type="number"
+						bind:value={formState.numberOfDays}
+						min="1"
+						max="30"
+						required
+					/>
 				</Field.Field>
 
 				<Field.Field>
@@ -140,7 +154,12 @@
 
 				<Field.Field>
 					<Field.Label for="style">Style</Field.Label>
-					<select id="style" bind:value={formState.style} class="border-input bg-background ring-offset-background focus-visible:border-ring focus-visible:ring-ring/50 flex h-9 w-full rounded-md border px-3 text-sm outline-none focus-visible:ring-[3px]" required>
+					<select
+						id="style"
+						bind:value={formState.style}
+						class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+						required
+					>
 						<option value="" disabled>Choose style</option>
 						{#each styleOptions as option (option)}
 							<option value={option}>{option}</option>
@@ -150,7 +169,12 @@
 
 				<Field.Field>
 					<Field.Label for="pace">Pace</Field.Label>
-					<select id="pace" bind:value={formState.pace} class="border-input bg-background ring-offset-background focus-visible:border-ring focus-visible:ring-ring/50 flex h-9 w-full rounded-md border px-3 text-sm outline-none focus-visible:ring-[3px]" required>
+					<select
+						id="pace"
+						bind:value={formState.pace}
+						class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+						required
+					>
 						<option value="" disabled>Choose pace</option>
 						{#each paceOptions as option (option)}
 							<option value={option}>{option}</option>
@@ -160,7 +184,12 @@
 
 				<Field.Field class="md:col-span-2 lg:col-span-6">
 					<Field.Label for="interests">Interests</Field.Label>
-					<Input id="interests" bind:value={formState.interests} placeholder="Food, temples, nightlife, design" required />
+					<Input
+						id="interests"
+						bind:value={formState.interests}
+						placeholder="Food, temples, nightlife, design"
+						required
+					/>
 				</Field.Field>
 			</div>
 
@@ -180,7 +209,9 @@
 	</section>
 
 	{#if errorMessage}
-		<p class="mt-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+		<p
+			class="mt-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+		>
 			{errorMessage}
 		</p>
 	{/if}
@@ -205,11 +236,11 @@
 					{/if}
 				</div>
 				<div class="rounded-xl border bg-card p-4 shadow-sm">
-					<p class="text-xs uppercase text-muted-foreground">Days</p>
+					<p class="text-xs text-muted-foreground uppercase">Days</p>
 					<p class="font-serif text-3xl">{draft.days.length}</p>
 				</div>
 				<div class="rounded-xl border bg-card p-4 shadow-sm">
-					<p class="text-xs uppercase text-muted-foreground">Activities</p>
+					<p class="text-xs text-muted-foreground uppercase">Activities</p>
 					<p class="font-serif text-3xl">{totalActivities}</p>
 					<p class="text-xs text-muted-foreground">{totalHotelNights} hotel nights</p>
 				</div>
@@ -232,7 +263,8 @@
 						<article class="rounded-lg border p-3">
 							<div class="mb-2 flex items-center justify-between gap-2">
 								<p class="font-medium">Day {day.dayNumber}: {day.location}</p>
-								<span class="text-xs text-muted-foreground">{day.activities.length} activities</span>
+								<span class="text-xs text-muted-foreground">{day.activities.length} activities</span
+								>
 							</div>
 							{#if day.overview}
 								<p class="mb-2 text-sm text-muted-foreground">{day.overview}</p>

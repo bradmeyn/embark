@@ -6,7 +6,10 @@ const DEFAULT_MODEL = 'gpt-4.1-mini';
 const stripCodeFences = (text: string) => {
 	const trimmed = text.trim();
 	if (!trimmed.startsWith('```')) return trimmed;
-	return trimmed.replace(/^```[a-zA-Z]*\n?/, '').replace(/\n?```$/, '').trim();
+	return trimmed
+		.replace(/^```[a-zA-Z]*\n?/, '')
+		.replace(/\n?```$/, '')
+		.trim();
 };
 
 export async function generateStructuredJson<T>({
@@ -28,7 +31,7 @@ export async function generateStructuredJson<T>({
 	try {
 		const response = await fetch(OPENAI_URL, {
 			method: 'POST',
-				headers: {
+			headers: {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${env.OPENAI_API_KEY}`
 			},

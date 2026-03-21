@@ -33,16 +33,26 @@
 			{@const sharedTrips = await sharedTripsPromise}
 
 			<div class="space-y-8 pb-8">
-				<section class="fade-up relative overflow-hidden rounded-2xl border bg-card p-6 shadow-sm" style="--stagger: 0;">
-					<div class="pointer-events-none absolute inset-0 bg-linear-to-r from-primary/10 via-transparent to-primary/5"></div>
-					<div class="pointer-events-none absolute -top-24 -right-20 size-56 rounded-full bg-primary/10 blur-3xl"></div>
+				<section
+					class="fade-up relative overflow-hidden rounded-2xl border bg-card p-6 shadow-sm"
+					style="--stagger: 0;"
+				>
+					<div
+						class="pointer-events-none absolute inset-0 bg-linear-to-r from-primary/10 via-transparent to-primary/5"
+					></div>
+					<div
+						class="pointer-events-none absolute -top-24 -right-20 size-56 rounded-full bg-primary/10 blur-3xl"
+					></div>
 					<div class="relative">
 						<div class="flex flex-wrap items-start justify-between gap-4">
 							<div>
-								<p class="text-xs tracking-[0.12em] text-muted-foreground uppercase">Trip Dashboard</p>
+								<p class="text-xs tracking-[0.12em] text-muted-foreground uppercase">
+									Trip Dashboard
+								</p>
 								<h1 class="mt-2 font-serif text-4xl font-light text-foreground">Your Trips</h1>
 								<p class="mt-2 max-w-xl text-sm text-muted-foreground">
-									Track what you own, what is shared with you, and jump back into planning in one place.
+									Track what you own, what is shared with you, and jump back into planning in one
+									place.
 								</p>
 							</div>
 							<div>
@@ -61,7 +71,9 @@
 							</div>
 							<div class="rounded-xl border bg-background/70 p-3">
 								<p class="text-xs tracking-wide text-muted-foreground uppercase">Total Visible</p>
-								<p class="mt-1 font-serif text-2xl text-primary">{myTrips.length + sharedTrips.length}</p>
+								<p class="mt-1 font-serif text-2xl text-primary">
+									{myTrips.length + sharedTrips.length}
+								</p>
 							</div>
 						</div>
 					</div>

@@ -89,7 +89,13 @@
 
 		<form {...addHotel.for(dayId).enhance(onSubmitEnhance)} class="space-y-3">
 			<div class="flex justify-end">
-				<Button type="button" variant="outline" size="sm" onclick={suggestHotel} disabled={suggesting}>
+				<Button
+					type="button"
+					variant="outline"
+					size="sm"
+					onclick={suggestHotel}
+					disabled={suggesting}
+				>
 					{#if suggesting}
 						<Spinner class="size-4" />
 					{:else}

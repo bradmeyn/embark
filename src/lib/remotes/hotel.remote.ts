@@ -7,7 +7,10 @@ import { asc, eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import { assertTripAccess } from '$lib/server/trip-access';
 
-function getMaxNightsForDay(days: Array<{ id: string; dayNumber: number; location: string }>, dayId: string) {
+function getMaxNightsForDay(
+	days: Array<{ id: string; dayNumber: number; location: string }>,
+	dayId: string
+) {
 	const startIndex = days.findIndex((d) => d.id === dayId);
 	if (startIndex === -1) return 0;
 

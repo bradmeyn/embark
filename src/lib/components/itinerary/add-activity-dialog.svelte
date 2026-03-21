@@ -90,7 +90,13 @@
 
 		<form {...addActivity.for(dayId).enhance(onSubmitEnhance)} class="space-y-3">
 			<div class="flex justify-end">
-				<Button type="button" variant="outline" size="sm" onclick={suggestActivity} disabled={suggesting}>
+				<Button
+					type="button"
+					variant="outline"
+					size="sm"
+					onclick={suggestActivity}
+					disabled={suggesting}
+				>
 					{#if suggesting}
 						<Spinner class="size-4" />
 					{:else}
