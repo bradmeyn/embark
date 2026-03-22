@@ -64,7 +64,7 @@
 						</div>
 					{/if}
 					<div class="flex items-center gap-2 overflow-x-auto p-3 scrollbar-none">
-						{#each locationGroups as group, i}
+						{#each locationGroups as group, i (group.startDay)}
 							<div class="flex shrink-0 items-center gap-2">
 								<span
 									class="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary"
@@ -124,7 +124,7 @@
 						</div>
 					{/if}
 					<div class="flex gap-3 overflow-x-auto p-3 scrollbar-none">
-						{#each locationGroups as group, i}
+						{#each locationGroups as group, i (group.startDay)}
 							<div class="flex shrink-0 items-center gap-2">
 								<span
 									class="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary"

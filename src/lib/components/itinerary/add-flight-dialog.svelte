@@ -20,15 +20,6 @@
 		showTrigger?: boolean;
 	} = $props();
 
-	async function onSubmitEnhance({ form, submit }: any) {
-		try {
-			await submit().updates(getTrip(tripId));
-			form.reset();
-			open = false;
-		} catch (e) {
-			console.error('Error adding flight', e);
-		}
-	}
 </script>
 
 <Dialog.Root bind:open>
@@ -48,11 +39,22 @@
 			<Dialog.Description>Add flight details for this day.</Dialog.Description>
 		</Dialog.Header>
 
-		{#each addFlight.fields.issues() as issue}
+		{#each addFlight.fields.issues() as issue (issue.message)}
 			<p class="text-sm text-red-600">{issue.message}</p>
 		{/each}
 
-		<form {...addFlight.for(dayId).enhance(onSubmitEnhance)} class="space-y-3">
+		<form
+			{...addFlight.for(dayId).enhance(async ({ form, submit }) => {
+				try {
+					await submit().updates(getTrip(tripId));
+					form.reset();
+					open = false;
+				} catch (e) {
+					console.error('Error adding flight', e);
+				}
+			})}
+			class="space-y-3"
+		>
 			<div class="grid grid-cols-2 gap-2">
 				<Field.Field>
 					<Field.Label for="airline">Airline</Field.Label>

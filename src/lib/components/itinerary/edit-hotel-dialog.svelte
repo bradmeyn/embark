@@ -21,15 +21,6 @@
 	} = $props();
 
 	const hotelForm = $derived(editHotel.for(hotel.id));
-
-	async function onSubmitEnhance({ submit }: any) {
-		try {
-			await submit().updates(getTrip(tripId));
-			open = false;
-		} catch (e) {
-			console.error('Error editing hotel', e);
-		}
-	}
 </script>
 
 <Dialog.Root bind:open>
@@ -43,11 +34,21 @@
 			<Dialog.Description>Update the hotel details.</Dialog.Description>
 		</Dialog.Header>
 
-		{#each hotelForm.fields.issues() as issue}
+		{#each hotelForm.fields.issues() as issue (issue)}
 			<p class="text-sm text-red-600">{issue.message}</p>
 		{/each}
 
-		<form {...hotelForm.enhance(onSubmitEnhance)} class="space-y-3">
+		<form
+			{...hotelForm.enhance(async ({ submit }) => {
+				try {
+					await submit().updates(getTrip(tripId));
+					open = false;
+				} catch (e) {
+					console.error('Error editing hotel', e);
+				}
+			})}
+			class="space-y-3"
+		>
 			<input type="hidden" name="id" value={hotel.id} />
 
 			<Field.Field>

@@ -61,7 +61,7 @@
 				<h3 class="font-serif text-lg">Flights</h3>
 			</div>
 			<div>
-				{#each day.flights as flight}
+				{#each day.flights as flight (flight.id)}
 					<div class="border-b py-3 last:border-0">
 						<div>
 							<h3 class="text-lg font-semibold text-foreground">
@@ -112,7 +112,7 @@
 				<Building2 class="size-4 text-amber-600" />
 				<h3 class="font-serif text-lg">Accommodation</h3>
 			</div>
-			{#each day.hotels as hotel}
+			{#each day.hotels as hotel (hotel.id)}
 				<div class="border-b py-3 last:border-0">
 					<div>
 						<h3 class="text-lg font-semibold text-foreground">{hotel.name}</h3>
@@ -156,7 +156,7 @@
 			</div>
 		{:else}
 			<ol class="relative">
-				{#each sortedActivities as activity}
+				{#each sortedActivities as activity (activity.id)}
 					<li class="border-b py-3 last:border-0">
 						<div>
 							<p class="text-sm font-medium text-muted-foreground">

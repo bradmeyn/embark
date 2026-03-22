@@ -40,7 +40,7 @@
 			<Dialog.Description>Add hotel or accommodation details for this day.</Dialog.Description>
 		</Dialog.Header>
 
-		{#each addHotel.fields.issues() as issue}
+		{#each addHotel.fields.issues() as issue (issue.message)}
 			<p class="text-sm text-red-600">{issue.message}</p>
 		{/each}
 

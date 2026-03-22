@@ -22,14 +22,6 @@
 
 	const flightForm = $derived(editFlight.for(flight.id));
 
-	async function onSubmitEnhance({ submit }: any) {
-		try {
-			await submit().updates(getTrip(tripId));
-			open = false;
-		} catch (e) {
-			console.error('Error editing flight', e);
-		}
-	}
 </script>
 
 <Dialog.Root bind:open>
@@ -43,11 +35,21 @@
 			<Dialog.Description>Update the flight details.</Dialog.Description>
 		</Dialog.Header>
 
-		{#each flightForm.fields.issues() as issue}
+		{#each flightForm.fields.issues() as issue (issue)}
 			<p class="text-sm text-red-600">{issue.message}</p>
 		{/each}
 
-		<form {...flightForm.enhance(onSubmitEnhance)} class="space-y-3">
+		<form
+			{...flightForm.enhance(async ({ submit }) => {
+				try {
+					await submit().updates(getTrip(tripId));
+					open = false;
+				} catch (e) {
+					console.error('Error editing flight', e);
+				}
+			})}
+			class="space-y-3"
+		>
 			<input type="hidden" name="id" value={flight.id} />
 
 			<div class="grid grid-cols-2 gap-2">

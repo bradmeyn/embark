@@ -104,7 +104,7 @@
 				</Button>
 			</div>
 			<div class="space-y-3">
-				{#each day.flights as flight}
+				{#each day.flights as flight (flight.id)}
 					<FlightCard {flight} {tripId} />
 				{/each}
 			</div>
@@ -113,7 +113,7 @@
 
 	<!-- Hotels -->
 	{#if activeHotels.length > 0}
-		{#each activeHotels as hotel}
+		{#each activeHotels as hotel (hotel.id)}
 			<HotelCard {hotel} {tripId} />
 		{/each}
 	{/if}
@@ -144,7 +144,7 @@
 			</div>
 		{:else}
 			<ol>
-				{#each sortedActivities as activity}
+				{#each sortedActivities as activity (activity.id)}
 					<ActivityCard {activity} {tripId} />
 				{/each}
 			</ol>

@@ -40,7 +40,7 @@
 			<Dialog.Description>Update the location or overview for this day.</Dialog.Description>
 		</Dialog.Header>
 
-		{#each dayForm.fields.issues() as issue}
+		{#each dayForm.fields.issues() as issue (issue.message)}
 			<p class="text-sm text-red-600">{issue.message}</p>
 		{/each}
 

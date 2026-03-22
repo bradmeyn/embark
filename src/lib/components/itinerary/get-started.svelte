@@ -30,7 +30,7 @@
 		<h1 class="heading-1">Get started</h1>
 		<p class=" text-muted-foreground">Add days to your itinerary to begin planning your trip.</p>
 
-		{#each addDays.fields.issues() as issue}
+		{#each addDays.fields.issues() as issue (issue.message)}
 			<p class="text-sm text-red-600">{issue.message}</p>
 		{/each}
 	</header>

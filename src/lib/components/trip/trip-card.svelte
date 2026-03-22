@@ -23,10 +23,10 @@
 		{#if trip.coverImage}
 			<div class="relative h-40 overflow-hidden">
 				<img src={trip.coverImage} alt="Trip cover" class="h-full w-full object-cover" />
-				<div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+				<div class="absolute inset-0 bg-linear-to-t from-black/30 to-transparent"></div>
 			</div>
 		{:else}
-			<div class="h-40 bg-gradient-to-br from-primary/20 to-primary/5"></div>
+			<div class="h-40 bg-linear-to-br from-primary/20 to-primary/5"></div>
 		{/if}
 
 		<div class="px-4 py-3">
