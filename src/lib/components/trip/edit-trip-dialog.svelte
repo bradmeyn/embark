@@ -3,7 +3,7 @@
 	import * as Dialog from '$ui/dialog/index.js';
 	import Input from '$ui/input/input.svelte';
 	import * as Field from '$ui/field';
-	import { editTrip, getMyTrips } from '$lib/remotes/trip.remote';
+	import { editTrip, getMyTrips } from '$lib/remotes/trips/trip.remote';
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import { Pencil } from '@lucide/svelte';
 	import type { Trip } from '$db/schemas/itinerary';
@@ -32,7 +32,7 @@
 		</Dialog.Header>
 
 		<form
-			{...editTrip.enhance(async ({ submit, data }) => {
+			{...editTrip.enhance(async ({ submit }) => {
 				try {
 					await submit().updates(getMyTrips());
 
@@ -58,7 +58,7 @@
 					disabled={!!editTrip.pending}
 				/>
 				<Field.Error />
-				{#each editTrip.fields.name.issues() as issue}
+				{#each editTrip.fields.name.issues() as issue (issue)}
 					<Field.Error>{issue.message}</Field.Error>
 				{/each}
 			</Field.Field>
@@ -73,7 +73,7 @@
 					value={trip.coverImage ?? ''}
 					disabled={!!editTrip.pending}
 				/>
-				{#each editTrip.fields.coverImage.issues() as issue}
+				{#each editTrip.fields.coverImage.issues() as issue (issue)}
 					<Field.Error>{issue.message}</Field.Error>
 				{/each}
 			</Field.Field>

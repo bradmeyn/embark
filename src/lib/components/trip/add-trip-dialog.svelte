@@ -3,7 +3,7 @@
 	import * as Dialog from '$ui/dialog/index.js';
 	import Input from '$ui/input/input.svelte';
 	import * as Field from '$ui/field';
-	import { addTrip } from '$lib/remotes/trip.remote';
+	import { addTrip } from '$lib/remotes/trips/trip.remote';
 	import Spinner from '$ui/spinner/spinner.svelte';
 
 	let {
@@ -56,7 +56,7 @@
 					disabled={!!addTrip.pending}
 				/>
 				<Field.Error />
-				{#each addTrip.fields.name.issues() as issue}
+				{#each addTrip.fields.name.issues() as issue (issue)}
 					<Field.Error>{issue.message}</Field.Error>
 				{/each}
 			</Field.Field>

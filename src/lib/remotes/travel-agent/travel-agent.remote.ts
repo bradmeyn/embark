@@ -3,7 +3,7 @@ import { error } from '@sveltejs/kit';
 import { z } from 'zod';
 import { db } from '$db';
 import { activityTable, dayTable, hotelTable, tripTable } from '$db/schemas/itinerary';
-import { getCurrentUser } from '$lib/remotes/auth.remote';
+import { getCurrentUser } from '$lib/remotes/auth/auth.remote';
 import { geocodeLocation } from '$lib/server/geocode';
 import { generateStructuredJson } from '$lib/server/ai';
 

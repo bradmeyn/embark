@@ -1,6 +1,6 @@
 import { command, form, query } from '$app/server';
 import { z } from 'zod';
-import { getCurrentUser } from '$lib/remotes/auth.remote';
+import { getCurrentUser } from '$lib/remotes/auth/auth.remote';
 import { db } from '$db';
 import { tripTable, tripCollaboratorTable } from '$db/schemas/itinerary';
 import { eq } from 'drizzle-orm';

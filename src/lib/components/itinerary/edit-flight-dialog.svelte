@@ -3,8 +3,8 @@
 	import * as Dialog from '$ui/dialog/index.js';
 	import Input from '$ui/input/input.svelte';
 	import * as Field from '$ui/field';
-	import { editFlight } from '$lib/remotes/flight.remote';
-	import { getTrip } from '$lib/remotes/trip.remote';
+	import { editFlight } from '$lib/remotes/trips/flight.remote';
+	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import type { Flight } from '$db/schemas/itinerary';
 

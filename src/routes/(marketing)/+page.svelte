@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { getCurrentUser } from '$lib/remotes/auth.remote';
+	import { getCurrentUser } from '$lib/remotes/auth/auth.remote';
 	import heroImage from '$lib/assets/images/locations/paris.png';
 	import { Sparkles, Users, CalendarCheck, MapPinned } from '@lucide/svelte';
 
@@ -18,7 +18,7 @@
 					</h1>
 					<p class="mt-4 max-w-2xl text-base text-muted-foreground md:text-lg">
 						Embark turns loose travel ideas into beautiful, day-by-day itineraries with AI
-						suggestions, map context, and collaborative trip sharing.
+						suggestions, mapped journeys, and collaborative trip sharing.
 					</p>
 
 					<div class="mt-6 flex flex-wrap gap-3 rounded-3xl">

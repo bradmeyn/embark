@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { Flight } from '$db/schemas/itinerary';
-	import { deleteFlight } from '$lib/remotes/flight.remote';
+	import { deleteFlight } from '$lib/remotes/trips/flight.remote';
 	import { DollarSign, Pencil, Trash2, Hash, ArrowRight } from '@lucide/svelte';
 	import DeleteDialog from '../delete-dialog.svelte';
 	import EditFlightDialog from './edit-flight-dialog.svelte';
-	import { getTrip } from '$lib/remotes/trip.remote';
+	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import Button from '$ui/button/button.svelte';
 
 	let {

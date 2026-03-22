@@ -2,7 +2,7 @@
 	import Button from '$ui/button/button.svelte';
 	import Input from '$ui/input/input.svelte';
 	import * as Field from '$ui/field';
-	import { addDays } from '$lib/remotes/day.remote';
+	import { addDays } from '$lib/remotes/trips/day.remote';
 	import Spinner from '$ui/spinner/spinner.svelte';
 
 	import { Plus, Trash } from '@lucide/svelte';

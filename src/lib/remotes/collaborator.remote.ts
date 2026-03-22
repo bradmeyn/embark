@@ -1,6 +1,6 @@
-import { command, query } from '$app/server';
+import { command, form, query } from '$app/server';
 import { z } from 'zod';
-import { getCurrentUser } from '$lib/remotes/auth.remote';
+import { getCurrentUser } from '$lib/remotes/auth/auth.remote';
 import { db } from '$db';
 import { tripCollaboratorTable, tripInviteTable } from '$db/schemas/itinerary';
 import { user as userTable } from '$db/schemas/auth';
@@ -29,7 +29,7 @@ export const getCollaborators = query(z.string(), async (tripId: string) => {
 	return { collaborators, pendingInvites };
 });
 
-export const inviteCollaborator = command(
+export const inviteCollaborator = form(
 	z.object({ tripId: z.string(), email: z.string().email() }),
 	async ({ tripId, email }) => {
 		const user = await getCurrentUser();
@@ -117,3 +117,35 @@ export const cancelInvite = command(
 		return { success: true };
 	}
 );
+
+export const getInviteDetails = query(z.string(), async (token: string) => {
+	const invite = await db.query.tripInviteTable.findFirst({
+		where: eq(tripInviteTable.inviteToken, token),
+		with: { trip: true }
+	});
+
+	if (!invite) error(404, 'This invitation link is invalid or has already been used.');
+	if (invite.expiresAt < new Date()) error(410, 'This invitation link has expired.');
+
+	return { tripName: invite.trip.name, tripId: invite.tripId, email: invite.invitedEmail };
+});
+
+export const acceptInvite = command(z.object({ token: z.string() }), async ({ token }) => {
+	const user = await getCurrentUser();
+	if (!user) error(401, 'Unauthorized');
+
+	const invite = await db.query.tripInviteTable.findFirst({
+		where: eq(tripInviteTable.inviteToken, token)
+	});
+
+	if (!invite) error(404, 'Invite not found or already used.');
+
+	await db
+		.insert(tripCollaboratorTable)
+		.values({ tripId: invite.tripId, userId: user.id })
+		.onConflictDoNothing();
+
+	await db.delete(tripInviteTable).where(eq(tripInviteTable.id, invite.id));
+
+	return { tripId: invite.tripId };
+});

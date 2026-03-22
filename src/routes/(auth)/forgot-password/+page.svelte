@@ -3,7 +3,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Field from '$lib/components/ui/field';
 	import { Input } from '$lib/components/ui/input';
-	import { sendPasswordReset } from '$lib/remotes/auth.remote';
+	import { sendPasswordReset } from '$lib/remotes/auth/auth.remote';
 
 	let sent = $derived(sendPasswordReset.result?.success);
 </script>

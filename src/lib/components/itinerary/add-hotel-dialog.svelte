@@ -3,9 +3,8 @@
 	import * as Dialog from '$ui/dialog/index.js';
 	import Input from '$ui/input/input.svelte';
 	import * as Field from '$ui/field';
-	import { addHotel } from '$lib/remotes/hotel.remote';
-	import { suggestHotelForDay } from '$lib/remotes/ai.remote';
-	import { getTrip } from '$lib/remotes/trip.remote';
+	import { addHotel, suggestHotelForDay } from '$lib/remotes/trips/hotel.remote';
+	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import { Plus, Sparkles } from '@lucide/svelte';
 
@@ -21,49 +20,7 @@
 		showTrigger?: boolean;
 	} = $props();
 
-	let name = $state('');
-	let address = $state('');
-	let nights = $state('');
-	let cost = $state('');
-	let confirmationNumber = $state('');
-	let suggesting = $state(false);
-
-	const resetFormState = () => {
-		name = '';
-		address = '';
-		nights = '';
-		cost = '';
-		confirmationNumber = '';
-	};
-
-	async function onSubmitEnhance({ form, submit }: any) {
-		try {
-			await submit().updates(getTrip(tripId));
-			form.reset();
-			resetFormState();
-			open = false;
-		} catch (e) {
-			console.error('Error adding hotel', e);
-		}
-	}
-
-	async function suggestHotel() {
-		suggesting = true;
-		try {
-			const result = await suggestHotelForDay({ dayId });
-			const suggestion = result.suggestion;
-			if (!suggestion) return;
-
-			name = suggestion.name ?? name;
-			address = suggestion.address ?? address;
-			nights = String(suggestion.nights ?? nights ?? '');
-			cost = suggestion.cost ? suggestion.cost.replace(/[^\d.]/g, '') : cost;
-		} catch (e) {
-			console.error('Error suggesting hotel', e);
-		} finally {
-			suggesting = false;
-		}
-	}
+	let suggestion = $state<Awaited<ReturnType<typeof suggestHotelForDay>>['suggestion'] | null>(null);
 </script>
 
 <Dialog.Root bind:open>
@@ -87,16 +44,31 @@
 			<p class="text-sm text-red-600">{issue.message}</p>
 		{/each}
 
-		<form {...addHotel.for(dayId).enhance(onSubmitEnhance)} class="space-y-3">
+		<form
+			{...addHotel.for(dayId).enhance(async ({ form, submit }) => {
+				try {
+					await submit().updates(getTrip(tripId));
+					form.reset();
+					suggestion = null;
+					open = false;
+				} catch (e) {
+					console.error('Error adding hotel', e);
+				}
+			})}
+			class="space-y-3"
+		>
 			<div class="flex justify-end">
 				<Button
 					type="button"
 					variant="outline"
 					size="sm"
-					onclick={suggestHotel}
-					disabled={suggesting}
+					onclick={async () => {
+						const result = await suggestHotelForDay({ dayId });
+						suggestion = result.suggestion;
+					}}
+					disabled={!!suggestHotelForDay.pending}
 				>
-					{#if suggesting}
+					{#if suggestHotelForDay.pending}
 						<Spinner class="size-4" />
 					{:else}
 						<Sparkles class="size-3.5" />
@@ -110,7 +82,7 @@
 				<Input
 					id="name"
 					{...addHotel.fields.name.as('text')}
-					bind:value={name}
+					value={suggestion?.name ?? ''}
 					autocomplete="off"
 					placeholder="e.g., Grand Hyatt Tokyo"
 				/>
@@ -122,7 +94,7 @@
 				<Input
 					id="address"
 					{...addHotel.fields.address.as('text')}
-					bind:value={address}
+					value={suggestion?.address ?? ''}
 					placeholder="Optional address"
 				/>
 				<Field.Error />
@@ -134,7 +106,7 @@
 					<Input
 						id="nights"
 						{...addHotel.fields.nights.as('number')}
-						bind:value={nights}
+						value={suggestion?.nights ?? ''}
 						min="1"
 						step="1"
 						placeholder="1"
@@ -147,7 +119,7 @@
 					<Input
 						id="cost"
 						{...addHotel.fields.cost.as('number')}
-						bind:value={cost}
+						value={suggestion?.cost?.replace(/[^\d.]/g, '') ?? ''}
 						min="0"
 						step="0.01"
 					/>
@@ -161,7 +133,6 @@
 					<Input
 						id="confirmationNumber"
 						{...addHotel.fields.confirmationNumber.as('text')}
-						bind:value={confirmationNumber}
 						placeholder="Optional"
 					/>
 					<Field.Error />

@@ -7,7 +7,7 @@
 	import EditTripDialog from '$lib/components/trip/edit-trip-dialog.svelte';
 	import ShareDialog from '$lib/components/trip/share-dialog.svelte';
 	import type { TripWithBasicDays } from '$db/schemas/itinerary';
-	import { deleteTrip } from '$lib/remotes/trip.remote';
+	import { deleteTrip } from '$lib/remotes/trips/trip.remote';
 
 	let { trip }: { trip: TripWithBasicDays } = $props();
 

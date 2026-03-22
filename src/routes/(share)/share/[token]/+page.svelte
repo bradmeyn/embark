@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	import { page } from '$app/state';
+	import { getSharedTrip } from '$lib/remotes/share.remote';
 	import DayDetailReadonly from '$lib/components/itinerary/day-detail-readonly.svelte';
 	import ItineraryMap from '$lib/components/itinerary/itinerary-map.svelte';
 	import DayListItem from '$lib/components/itinerary/day-list-item.svelte';
 	import { groupLocationsByConsecutive } from '$lib/utils';
 
-	let { data }: { data: PageData } = $props();
-	const trip = $derived(data.trip);
+	const trip = await getSharedTrip(page.params.token!);
 
 	const hasMap = $derived(trip.days.some((d) => d.latitude != null));
 	const locationGroups = $derived(groupLocationsByConsecutive(trip.days));

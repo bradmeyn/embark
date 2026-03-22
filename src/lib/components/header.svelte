@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import logo from '$lib/assets/logo-transparent.png';
-	import { getCurrentUser } from '$lib/remotes/auth.remote';
+	import { getCurrentUser } from '$lib/remotes/auth/auth.remote';
 	import { Menu, X } from '@lucide/svelte';
 
 	const user = getCurrentUser();

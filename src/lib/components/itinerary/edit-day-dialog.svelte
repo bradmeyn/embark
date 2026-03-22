@@ -3,9 +3,8 @@
 	import * as Dialog from '$ui/dialog/index.js';
 	import Input from '$ui/input/input.svelte';
 	import * as Field from '$ui/field';
-	import { editDay } from '$lib/remotes/day.remote';
-	import { suggestDayOverview } from '$lib/remotes/ai.remote';
-	import { getTrip } from '$lib/remotes/trip.remote';
+	import { editDay, suggestDayOverview } from '$lib/remotes/trips/day.remote';
+	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import type { Day } from '$db/schemas/itinerary';
 	import { Sparkles } from '@lucide/svelte';
@@ -23,40 +22,11 @@
 	} = $props();
 
 	const dayForm = $derived(editDay.for(day.id));
-	let location = $state(day.location);
-	let overview = $state(day.overview ?? '');
-	let suggesting = $state(false);
+	let suggestion = $state<Awaited<ReturnType<typeof suggestDayOverview>>['suggestion'] | null>(null);
 
 	$effect(() => {
-		if (!open) return;
-		location = day.location;
-		overview = day.overview ?? '';
+		if (!open) suggestion = null;
 	});
-
-	async function onSubmitEnhance({ submit }: any) {
-		try {
-			await submit().updates(getTrip(tripId));
-			open = false;
-		} catch (e) {
-			console.error('Error editing day', e);
-		}
-	}
-
-	async function suggestDay() {
-		suggesting = true;
-		try {
-			const result = await suggestDayOverview({ dayId: day.id });
-			const suggestion = result.suggestion;
-			if (!suggestion) return;
-
-			location = suggestion.location ?? location;
-			overview = suggestion.overview ?? overview;
-		} catch (e) {
-			console.error('Error suggesting day details', e);
-		} finally {
-			suggesting = false;
-		}
-	}
 </script>
 
 <Dialog.Root bind:open>
@@ -74,7 +44,17 @@
 			<p class="text-sm text-red-600">{issue.message}</p>
 		{/each}
 
-		<form {...dayForm.enhance(onSubmitEnhance)} class="space-y-4">
+		<form
+			{...dayForm.enhance(async ({ submit }) => {
+				try {
+					await submit().updates(getTrip(tripId));
+					open = false;
+				} catch (e) {
+					console.error('Error editing day', e);
+				}
+			})}
+			class="space-y-4"
+		>
 			<input type="hidden" name="id" value={day.id} />
 
 			<div class="flex justify-end">
@@ -82,10 +62,13 @@
 					type="button"
 					variant="outline"
 					size="sm"
-					onclick={suggestDay}
-					disabled={suggesting}
+					onclick={async () => {
+						const result = await suggestDayOverview({ dayId: day.id });
+						suggestion = result.suggestion;
+					}}
+					disabled={!!suggestDayOverview.pending}
 				>
-					{#if suggesting}
+					{#if suggestDayOverview.pending}
 						<Spinner class="size-4" />
 					{:else}
 						<Sparkles class="size-3.5" />
@@ -99,7 +82,7 @@
 				<Input
 					id="location"
 					{...dayForm.fields.location.as('text')}
-					bind:value={location}
+					value={suggestion?.location ?? day.location}
 					autocomplete="off"
 					placeholder="e.g., Tokyo, Paris, New York"
 				/>
@@ -111,7 +94,7 @@
 				<textarea
 					id="overview"
 					{...dayForm.fields.overview.as('text')}
-					bind:value={overview}
+					value={suggestion?.overview ?? day.overview ?? ''}
 					rows="2"
 					class="w-full rounded-md border p-2"
 					placeholder="Brief description of this day..."

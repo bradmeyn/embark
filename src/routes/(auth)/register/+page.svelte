@@ -5,7 +5,7 @@
 	import * as Field from '$lib/components/ui/field';
 	import { Input } from '$lib/components/ui/input';
 
-	import { registerUser } from '$lib/remotes/auth.remote';
+	import { registerUser } from '$lib/remotes/auth/auth.remote';
 </script>
 
 <div class="flex h-screen">

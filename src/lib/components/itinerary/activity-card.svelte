@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { Activity } from '$db/schemas/itinerary';
-	import { deleteActivity } from '$lib/remotes/activity.remote';
+	import { deleteActivity } from '$lib/remotes/trips/activity.remote';
 	import { DollarSign, MapPin, Trash2 } from '@lucide/svelte';
 	import DeleteDialog from '../delete-dialog.svelte';
-	import { getTrip } from '$lib/remotes/trip.remote';
+	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import Button from '$ui/button/button.svelte';
 
 	let {
@@ -33,7 +33,8 @@
 	async function handleDeleteActivity(activityId: string) {
 		try {
 			await deleteActivity({ activityId }).updates(getTrip(tripId));
-		} finally {
+		} catch (e) {
+			console.error('Error deleting activity', e);
 		}
 	}
 </script>

@@ -13,7 +13,7 @@
 		saveGeneratedTrip,
 		type GeneratedTripDraft,
 		type TripAgentInput
-	} from '$lib/remotes/travel-agent.remote';
+	} from '$lib/remotes/travel-agent/travel-agent.remote';
 
 	type PreviewDay = GeneratedTripDraft['days'][number] & {
 		latitude?: number | null;

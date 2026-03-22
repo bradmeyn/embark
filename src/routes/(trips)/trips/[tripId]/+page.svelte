@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getTrip } from '$lib/remotes/trip.remote';
+	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import { page } from '$app/state';
 	import GetStarted from '$lib/components/itinerary/get-started.svelte';
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
@@ -130,9 +130,6 @@
 							</button>
 						{/each}
 					</div>
-					<div class="shrink-0 border-t p-2">
-						<AddDayDialog tripId={trip.id} {nextDayNumber} />
-					</div>
 				</div>
 
 				<!-- Detail panel -->
@@ -195,9 +192,6 @@
 							<span class="max-w-24 truncate font-serif text-sm">{day.location}</span>
 						</button>
 					{/each}
-					<div class="flex shrink-0 items-center pl-1">
-						<AddDayDialog tripId={trip.id} {nextDayNumber} />
-					</div>
 				</div>
 			</div>
 

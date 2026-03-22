@@ -1,13 +1,20 @@
-import { command } from '$app/server';
+import { command, query } from '$app/server';
 import { z } from 'zod';
-import { getCurrentUser } from '$lib/remotes/auth.remote';
+import { getCurrentUser } from '$lib/remotes/auth/auth.remote';
 import { db } from '$db';
 import { tripTable } from '$db/schemas/itinerary';
 import { eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import { randomBytes } from 'crypto';
 import { assertTripOwner } from '$lib/server/trip-access';
-import { getTrip } from '$lib/remotes/trip.remote';
+import { getTrip } from '$lib/remotes/trips/trip.remote';
+import { getTripByShareToken } from '$lib/server/share';
+
+export const getSharedTrip = query(z.string(), async (token: string) => {
+	const trip = await getTripByShareToken(token);
+	if (!trip) error(404, 'This share link is invalid or has been revoked.');
+	return trip;
+});
 
 export const generateShareLink = command(
 	z.object({ tripId: z.string() }),

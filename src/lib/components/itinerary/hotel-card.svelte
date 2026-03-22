@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { Hotel } from '$db/schemas/itinerary';
-	import { deleteHotel } from '$lib/remotes/hotel.remote';
+	import { deleteHotel } from '$lib/remotes/trips/hotel.remote';
 	import { Building2, MapPin, Pencil, Trash2, Hash } from '@lucide/svelte';
 	import DeleteDialog from '../delete-dialog.svelte';
 	import EditHotelDialog from './edit-hotel-dialog.svelte';
-	import { getTrip } from '$lib/remotes/trip.remote';
+	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import Button from '$ui/button/button.svelte';
 
 	let {
@@ -33,7 +33,12 @@
 			<h3 class="font-medium text-foreground">{hotel.name}</h3>
 
 			<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-				<span>{hotel.nights ?? 1} {(hotel.nights ?? 1) === 1 ? 'night' : 'nights'}{#if hotel.cost}&nbsp;&middot;&nbsp;${(Number(hotel.cost) / (hotel.nights ?? 1)).toFixed(0)}/night{/if}</span>
+				<span
+					>{hotel.nights ?? 1}
+					{(hotel.nights ?? 1) === 1 ? 'night' : 'nights'}{#if hotel.cost}&nbsp;&middot;&nbsp;${(
+							Number(hotel.cost) / (hotel.nights ?? 1)
+						).toFixed(0)}/night{/if}</span
+				>
 				{#if hotel.address}
 					<div class="flex items-center gap-1">
 						<MapPin class="size-3 text-primary" />

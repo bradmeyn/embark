@@ -1,8 +1,8 @@
 <script lang="ts">
 	import * as Accordion from '$ui/accordion/index.js';
 	import type { DayWithActivities } from '$db/schemas/itinerary';
-	import { deleteDay } from '$lib/remotes/day.remote';
-	import { getTrip } from '$lib/remotes/trip.remote';
+	import { deleteDay } from '$lib/remotes/trips/day.remote';
+	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import AddActivityDialog from './add-activity-dialog.svelte';
 	import AddHotelDialog from './add-hotel-dialog.svelte';
 	import AddFlightDialog from './add-flight-dialog.svelte';

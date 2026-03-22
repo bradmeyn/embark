@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { DayWithActivities, Hotel } from '$db/schemas/itinerary';
-	import { deleteDay } from '$lib/remotes/day.remote';
-	import { getTrip } from '$lib/remotes/trip.remote';
+	import { deleteDay } from '$lib/remotes/trips/day.remote';
+	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import AddActivityDialog from './add-activity-dialog.svelte';
 	import AddHotelDialog from './add-hotel-dialog.svelte';
 	import AddFlightDialog from './add-flight-dialog.svelte';
@@ -13,7 +13,11 @@
 	import Button from '$ui/button/button.svelte';
 	import { Plus, Pencil, Trash2, Plane, Building2 } from '@lucide/svelte';
 
-	let { day, tripId, activeHotels = [] }: { day: DayWithActivities; tripId: string; activeHotels?: Hotel[] } = $props();
+	let {
+		day,
+		tripId,
+		activeHotels = []
+	}: { day: DayWithActivities; tripId: string; activeHotels?: Hotel[] } = $props();
 
 	let addActivityOpen = $state(false);
 	let addHotelOpen = $state(false);

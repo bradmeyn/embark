@@ -1,11 +1,12 @@
 import { command, form } from '$app/server';
 import { z } from 'zod';
-import { getCurrentUser } from '$lib/remotes/auth.remote';
+import { getCurrentUser } from '$lib/remotes/auth/auth.remote';
 import { db } from '$db';
 import { hotelTable, dayTable } from '$db/schemas/itinerary';
 import { asc, eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import { assertTripAccess } from '$lib/server/trip-access';
+import { generateStructuredJson } from '$lib/server/ai';
 
 function getMaxNightsForDay(
 	days: Array<{ id: string; dayNumber: number; location: string }>,
@@ -165,4 +166,71 @@ export const deleteHotel = command(z.object({ hotelId: z.string() }), async ({ h
 	await db.delete(hotelTable).where(eq(hotelTable.id, hotelId));
 
 	return { success: true };
+});
+
+const suggestHotelSchema = z.object({
+	dayId: z.string(),
+	userPrompt: z.string().optional()
+});
+
+const suggestionHotelPayloadSchema = z.object({
+	name: z.string().min(1),
+	address: z.string().optional(),
+	notes: z.string().optional(),
+	cost: z.string().optional(),
+	nights: z.number().int().min(1).max(14).default(1)
+});
+
+export const suggestHotelForDay = command(suggestHotelSchema, async ({ dayId, userPrompt }) => {
+	const user = await getCurrentUser();
+	if (!user) error(401, 'Unauthorized');
+
+	const day = await db.query.dayTable.findFirst({ where: eq(dayTable.id, dayId) });
+	if (!day) error(404, 'Day not found');
+
+	await assertTripAccess(day.tripId, user.id);
+
+	const days = await db.query.dayTable.findMany({
+		where: eq(dayTable.tripId, day.tripId),
+		orderBy: [asc(dayTable.dayNumber)]
+	});
+	const maxNights = getMaxNightsForDay(days, day.id);
+
+	let modelOutput: unknown;
+	try {
+		modelOutput = await generateStructuredJson<unknown>({
+			system:
+				'Suggest one accommodation option as JSON only. Keep values practical and concise. Nights must be between 1 and the provided maxNights.',
+			user: JSON.stringify({
+				day: {
+					dayNumber: day.dayNumber,
+					location: day.location,
+					overview: day.overview
+				},
+				maxNights,
+				userPrompt: userPrompt ?? null,
+				requiredShape: {
+					name: 'string',
+					address: 'string (optional)',
+					notes: 'string (optional)',
+					cost: 'string currency (optional)',
+					nights: `integer between 1 and ${maxNights}`
+				}
+			})
+		});
+	} catch (err) {
+		console.error('AI hotel suggestion failed', err);
+		error(500, 'Unable to suggest accommodation right now.');
+	}
+
+	const suggestion = suggestionHotelPayloadSchema.safeParse(modelOutput);
+	if (!suggestion.success) error(500, 'Received invalid accommodation suggestion. Please try again.');
+
+	return {
+		success: true,
+		suggestion: {
+			...suggestion.data,
+			nights: Math.min(suggestion.data.nights, maxNights)
+		}
+	};
 });

@@ -3,9 +3,8 @@
 	import * as Dialog from '$ui/dialog/index.js';
 	import Input from '$ui/input/input.svelte';
 	import * as Field from '$ui/field';
-	import { addActivity } from '$lib/remotes/activity.remote';
-	import { suggestActivityForDay } from '$lib/remotes/ai.remote';
-	import { getTrip } from '$lib/remotes/trip.remote';
+	import { addActivity, suggestActivityForDay } from '$lib/remotes/trips/activity.remote';
+	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import { Plus, Sparkles } from '@lucide/svelte';
 
@@ -21,50 +20,7 @@
 		showTrigger?: boolean;
 	} = $props();
 
-	let name = $state('');
-	let description = $state('');
-	let startTime = $state('');
-	let cost = $state('');
-	let location = $state('');
-	let suggesting = $state(false);
-
-	const resetFormState = () => {
-		name = '';
-		description = '';
-		startTime = '';
-		cost = '';
-		location = '';
-	};
-
-	async function onSubmitEnhance({ form, submit }: any) {
-		try {
-			await submit().updates(getTrip(tripId));
-			form.reset();
-			resetFormState();
-			open = false;
-		} catch (e) {
-			console.error('Error adding activity', e);
-		}
-	}
-
-	async function suggestActivity() {
-		suggesting = true;
-		try {
-			const result = await suggestActivityForDay({ dayId });
-			const suggestion = result.suggestion;
-			if (!suggestion) return;
-
-			name = suggestion.name ?? name;
-			description = suggestion.description ?? description;
-			startTime = suggestion.startTime ?? startTime;
-			location = suggestion.location ?? location;
-			cost = suggestion.cost ? suggestion.cost.replace(/[^\d.]/g, '') : cost;
-		} catch (e) {
-			console.error('Error suggesting activity', e);
-		} finally {
-			suggesting = false;
-		}
-	}
+	let suggestion = $state<Awaited<ReturnType<typeof suggestActivityForDay>>['suggestion'] | null>(null);
 </script>
 
 <Dialog.Root bind:open>
@@ -84,20 +40,35 @@
 			>
 		</Dialog.Header>
 
-		{#each addActivity.fields.issues() as issue}
+		{#each addActivity.fields.issues() as issue (issue.message)}
 			<p class="text-sm text-red-600">{issue.message}</p>
 		{/each}
 
-		<form {...addActivity.for(dayId).enhance(onSubmitEnhance)} class="space-y-3">
+		<form
+			{...addActivity.for(dayId).enhance(async ({ form, submit }) => {
+				try {
+					await submit().updates(getTrip(tripId));
+					form.reset();
+					suggestion = null;
+					open = false;
+				} catch (e) {
+					console.error('Error adding activity', e);
+				}
+			})}
+			class="space-y-3"
+		>
 			<div class="flex justify-end">
 				<Button
 					type="button"
 					variant="outline"
 					size="sm"
-					onclick={suggestActivity}
-					disabled={suggesting}
+					onclick={async () => {
+						const result = await suggestActivityForDay({ dayId });
+						suggestion = result.suggestion;
+					}}
+					disabled={!!suggestActivityForDay.pending}
 				>
-					{#if suggesting}
+					{#if suggestActivityForDay.pending}
 						<Spinner class="size-4" />
 					{:else}
 						<Sparkles class="size-3.5" />
@@ -111,7 +82,7 @@
 				<Input
 					id="name"
 					{...addActivity.fields.name.as('text')}
-					bind:value={name}
+					value={suggestion?.name ?? ''}
 					autocomplete="off"
 					placeholder="e.g., Morning Hike"
 				/>
@@ -123,7 +94,7 @@
 				<textarea
 					id="description"
 					{...addActivity.fields.description.as('text')}
-					bind:value={description}
+					value={suggestion?.description ?? ''}
 					rows="3"
 					class="w-full rounded-md border p-2"
 				></textarea>
@@ -136,7 +107,7 @@
 					<Input
 						id="startTime"
 						{...addActivity.fields.startTime.as('text')}
-						bind:value={startTime}
+						value={suggestion?.startTime ?? ''}
 						type="time"
 						step="60"
 						class="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
@@ -149,7 +120,7 @@
 					<Input
 						id="cost"
 						{...addActivity.fields.cost.as('number')}
-						bind:value={cost}
+						value={suggestion?.cost?.replace(/[^\d.]/g, '') ?? ''}
 						min="0"
 						step="0.01"
 					/>
@@ -162,7 +133,7 @@
 				<Input
 					id="location"
 					{...addActivity.fields.location.as('text')}
-					bind:value={location}
+					value={suggestion?.location ?? ''}
 					placeholder="Optional location"
 				/>
 				<Field.Error />

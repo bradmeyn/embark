@@ -4,7 +4,12 @@
 	import { Share2, Copy, Check, Trash2, X, UserPlus, Link } from '@lucide/svelte';
 	import type { TripWithBasicDays } from '$db/schemas/itinerary';
 	import { generateShareLink, revokeShareLink } from '$lib/remotes/share.remote';
-	import { getCollaborators, inviteCollaborator, removeCollaborator, cancelInvite } from '$lib/remotes/collaborator.remote';
+	import {
+		getCollaborators,
+		inviteCollaborator,
+		removeCollaborator,
+		cancelInvite
+	} from '$lib/remotes/collaborator.remote';
 	import { env } from '$env/dynamic/public';
 
 	let {
@@ -18,14 +23,10 @@
 	} = $props();
 
 	let shareToken = $state(trip.shareToken ?? null);
-	let inviteEmail = $state('');
 	let copied = $state(false);
 	let loading = $state(false);
-	let inviting = $state(false);
 
-	const shareUrl = $derived(
-		shareToken ? `${env.PUBLIC_BASE_URL ?? ''}/share/${shareToken}` : null
-	);
+	const shareUrl = $derived(shareToken ? `${env.PUBLIC_BASE_URL ?? ''}/share/${shareToken}` : null);
 
 	async function handleGenerateLink() {
 		loading = true;
@@ -54,23 +55,14 @@
 		setTimeout(() => (copied = false), 2000);
 	}
 
-	async function handleInvite() {
-		if (!inviteEmail) return;
-		inviting = true;
-		try {
-			await inviteCollaborator({ tripId: trip.id, email: inviteEmail });
-			inviteEmail = '';
-		} finally {
-			inviting = false;
-		}
-	}
-
 	const collaboratorsData = $derived(await getCollaborators(trip.id));
 </script>
 
 <Dialog.Root bind:open>
 	{#if showTrigger}
-		<Dialog.Trigger class="flex items-center gap-2 w-full px-2 py-1.5 text-sm hover:bg-muted rounded-sm">
+		<Dialog.Trigger
+			class="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-muted"
+		>
 			<Share2 class="size-4" />
 			<span>Share & Collaborate</span>
 		</Dialog.Trigger>
@@ -78,7 +70,9 @@
 	<Dialog.Content class="max-w-lg">
 		<Dialog.Header>
 			<Dialog.Title>Share & Collaborate</Dialog.Title>
-			<Dialog.Description>Share a read-only link or invite collaborators to edit.</Dialog.Description>
+			<Dialog.Description
+				>Share a read-only link or invite collaborators to edit.</Dialog.Description
+			>
 		</Dialog.Header>
 
 		<div class="space-y-6 py-2">
@@ -86,7 +80,7 @@
 			<section class="space-y-3">
 				<div class="flex items-center gap-2">
 					<Link class="size-4 text-primary" />
-					<h3 class="font-medium text-sm">Share Link</h3>
+					<h3 class="text-sm font-medium">Share Link</h3>
 				</div>
 
 				{#if shareToken && shareUrl}
@@ -119,7 +113,13 @@
 					<p class="text-sm text-muted-foreground">
 						Anyone with the link can view this trip without signing in.
 					</p>
-					<Button variant="outline" size="sm" onclick={handleGenerateLink} disabled={loading} class="gap-1.5">
+					<Button
+						variant="outline"
+						size="sm"
+						onclick={handleGenerateLink}
+						disabled={loading}
+						class="gap-1.5"
+					>
 						<Link class="size-3.5" />
 						{loading ? 'Generating...' : 'Generate share link'}
 					</Button>
@@ -132,21 +132,29 @@
 			<section class="space-y-3">
 				<div class="flex items-center gap-2">
 					<UserPlus class="size-4 text-primary" />
-					<h3 class="font-medium text-sm">Collaborators</h3>
+					<h3 class="text-sm font-medium">Collaborators</h3>
 				</div>
 
 				<!-- Invite form -->
-				<div class="flex gap-2">
+				<form
+					{...inviteCollaborator.for(trip.id).enhance(async ({ form, submit }) => {
+						await submit();
+						if (inviteCollaborator.result?.success) form.reset();
+					})}
+					class="flex gap-2"
+				>
 					<input
-						type="email"
+						{...inviteCollaborator.fields.email.as('email')}
 						placeholder="email@example.com"
-						bind:value={inviteEmail}
-						class="flex-1 rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+						class="flex-1 rounded-md border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
 					/>
-					<Button size="sm" onclick={handleInvite} disabled={inviting || !inviteEmail} class="gap-1.5">
-						{inviting ? 'Inviting...' : 'Invite'}
+					<Button type="submit" size="sm" disabled={!!inviteCollaborator.pending} class="gap-1.5">
+						{inviteCollaborator.pending ? 'Inviting...' : 'Invite'}
 					</Button>
-				</div>
+				</form>
+				{#each inviteCollaborator.fields.issues() as issue (issue.message)}
+					<p class="text-sm text-red-600">{issue.message}</p>
+				{/each}
 
 				<!-- Current collaborators & pending invites -->
 				<svelte:boundary>
@@ -158,7 +166,7 @@
 						<p class="text-sm text-muted-foreground">No collaborators yet.</p>
 					{:else}
 						<ul class="space-y-2">
-							{#each collaboratorsData.collaborators as collab}
+							{#each collaboratorsData.collaborators as collab (collab.userId)}
 								<li class="flex items-center justify-between rounded-md border px-3 py-2">
 									<div>
 										<p class="text-sm font-medium">{collab.user.name}</p>
@@ -174,8 +182,10 @@
 									</Button>
 								</li>
 							{/each}
-							{#each collaboratorsData.pendingInvites as invite}
-								<li class="flex items-center justify-between rounded-md border border-dashed px-3 py-2">
+							{#each collaboratorsData.pendingInvites as invite (invite.id)}
+								<li
+									class="flex items-center justify-between rounded-md border border-dashed px-3 py-2"
+								>
 									<div>
 										<p class="text-sm">{invite.invitedEmail}</p>
 										<p class="text-xs text-amber-600">Pending invite</p>

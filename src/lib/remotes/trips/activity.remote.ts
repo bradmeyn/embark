@@ -1,11 +1,12 @@
 import { query, form, command } from '$app/server';
 import { z } from 'zod';
-import { getCurrentUser } from '$lib/remotes/auth.remote';
+import { getCurrentUser } from '$lib/remotes/auth/auth.remote';
 import { db } from '$db';
 import { activityTable, dayTable } from '$db/schemas/itinerary';
 import { eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import { assertTripAccess } from '$lib/server/trip-access';
+import { generateStructuredJson } from '$lib/server/ai';
 
 const activitySchema = z.object({
 	name: z.string().min(1, 'Activity name is required'),
@@ -98,5 +99,62 @@ export const deleteActivity = command(
 		await db.delete(activityTable).where(eq(activityTable.id, activityId));
 
 		return { success: true };
+	}
+);
+
+const suggestActivitySchema = z.object({
+	dayId: z.string(),
+	userPrompt: z.string().optional()
+});
+
+const suggestionActivityPayloadSchema = z.object({
+	name: z.string().min(1),
+	description: z.string().optional(),
+	location: z.string().optional(),
+	startTime: z.string().optional(),
+	cost: z.string().optional()
+});
+
+export const suggestActivityForDay = command(
+	suggestActivitySchema,
+	async ({ dayId, userPrompt }) => {
+		const user = await getCurrentUser();
+		if (!user) error(401, 'Unauthorized');
+
+		const day = await db.query.dayTable.findFirst({ where: eq(dayTable.id, dayId) });
+		if (!day) error(404, 'Day not found');
+
+		await assertTripAccess(day.tripId, user.id);
+
+		let modelOutput: unknown;
+		try {
+			modelOutput = await generateStructuredJson<unknown>({
+				system:
+					'Suggest one concrete travel activity as JSON only. Keep it realistic and concise. Include startTime as HH:MM only when useful.',
+				user: JSON.stringify({
+					day: {
+						dayNumber: day.dayNumber,
+						location: day.location,
+						overview: day.overview
+					},
+					userPrompt: userPrompt ?? null,
+					requiredShape: {
+						name: 'string',
+						description: 'string (optional)',
+						location: 'string (optional)',
+						startTime: 'HH:MM (optional)',
+						cost: 'string currency (optional)'
+					}
+				})
+			});
+		} catch (err) {
+			console.error('AI activity suggestion failed', err);
+			error(500, 'Unable to suggest an activity right now.');
+		}
+
+		const suggestion = suggestionActivityPayloadSchema.safeParse(modelOutput);
+		if (!suggestion.success) error(500, 'Received invalid activity suggestion. Please try again.');
+
+		return { success: true, suggestion: suggestion.data };
 	}
 );

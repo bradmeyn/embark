@@ -4,7 +4,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Field from '$lib/components/ui/field';
 	import { Input } from '$lib/components/ui/input';
-	import { loginUser } from '$lib/remotes/auth.remote';
+	import { loginUser } from '$lib/remotes/auth/auth.remote';
 </script>
 
 <div class="flex h-screen">

@@ -5,7 +5,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Field from '$lib/components/ui/field';
 	import { Input } from '$lib/components/ui/input';
-	import { resetPassword } from '$lib/remotes/auth.remote';
+	import { resetPassword } from '$lib/remotes/auth/auth.remote';
 
 	const token = $derived(page.url.searchParams.get('token') ?? '');
 

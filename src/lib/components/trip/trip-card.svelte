@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import TripActionsMenu from '$lib/components/trip/trip-actions-menu.svelte';
 	import type { TripWithBasicDays } from '$lib/server/db/schemas/itinerary';
 	import { groupLocationsByConsecutive } from '$lib/utils';
@@ -16,7 +17,7 @@
 
 <div class="relative rounded-xl">
 	<a
-		href="/trips/{trip.id}"
+		href={resolve(`/trips/${trip.id}`)}
 		class="block overflow-hidden rounded-xl border-2 bg-card shadow-sm transition-all hover:border-primary hover:shadow-md"
 	>
 		{#if trip.coverImage}
@@ -43,7 +44,7 @@
 	</a>
 
 	{#if !readonly}
-		<div class="absolute right-3 top-3 z-10">
+		<div class="absolute top-3 right-3 z-10">
 			<TripActionsMenu {trip} />
 		</div>
 	{/if}

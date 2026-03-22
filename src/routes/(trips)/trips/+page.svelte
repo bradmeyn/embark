@@ -1,10 +1,10 @@
 <script lang="ts">
 	import TripCard from '$lib/components/trip/trip-card.svelte';
 	import CreateTripDialog from '$lib/components/trip/add-trip-dialog.svelte';
-	import { getMyTrips, getSharedTrips } from '$lib/remotes/trip.remote';
+	import { getMyTrips, getSharedTrips } from '$lib/remotes/trips/trip.remote';
 
-	const myTripsPromise = getMyTrips();
-	const sharedTripsPromise = getSharedTrips();
+	const myTrips = await getMyTrips();
+	const sharedTrips = await getSharedTrips();
 </script>
 
 <div class="h-full overflow-y-auto">
@@ -28,9 +28,6 @@
 					</div>
 				</div>
 			{/snippet}
-
-			{@const myTrips = await myTripsPromise}
-			{@const sharedTrips = await sharedTripsPromise}
 
 			<div class="space-y-8 pb-8">
 				<section
