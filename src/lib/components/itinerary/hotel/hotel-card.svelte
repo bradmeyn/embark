@@ -2,7 +2,7 @@
 	import type { Hotel } from '$db/schemas/itinerary';
 	import { deleteHotel } from '$lib/remotes/trips/hotel.remote';
 	import { Building2, MapPin, Pencil, Trash2, Hash } from '@lucide/svelte';
-	import DeleteDialog from '../delete-dialog.svelte';
+	import DeleteDialog from '../../delete-dialog.svelte';
 	import EditHotelDialog from './edit-hotel-dialog.svelte';
 	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import Button from '$ui/button/button.svelte';

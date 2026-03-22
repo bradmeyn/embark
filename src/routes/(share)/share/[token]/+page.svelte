@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { getSharedTrip } from '$lib/remotes/share.remote';
-	import DayDetailReadonly from '$lib/components/itinerary/day-detail-readonly.svelte';
+	import DayDetailReadonly from '$lib/components/itinerary/day/day-detail-readonly.svelte';
 	import ItineraryMap from '$lib/components/itinerary/itinerary-map.svelte';
-	import DayListItem from '$lib/components/itinerary/day-list-item.svelte';
+	import DayListItem from '$lib/components/itinerary/day/day-list-item.svelte';
 	import { groupLocationsByConsecutive } from '$lib/utils';
 
 	const trip = await getSharedTrip(page.params.token!);

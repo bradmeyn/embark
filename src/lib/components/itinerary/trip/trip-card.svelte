@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import TripActionsMenu from '$lib/components/trip/trip-actions-menu.svelte';
+	import TripActionsMenu from '$lib/components/itinerary/trip/trip-actions-menu.svelte';
 	import type { TripWithBasicDays } from '$lib/server/db/schemas/itinerary';
 	import { groupLocationsByConsecutive } from '$lib/utils';
 

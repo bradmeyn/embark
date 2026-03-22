@@ -1,6 +1,6 @@
 <script lang="ts">
-	import TripCard from '$lib/components/trip/trip-card.svelte';
-	import CreateTripDialog from '$lib/components/trip/add-trip-dialog.svelte';
+	import TripCard from '$lib/components/itinerary/trip/trip-card.svelte';
+	import CreateTripDialog from '$lib/components/itinerary/trip/add-trip-dialog.svelte';
 	import { getMyTrips, getSharedTrips } from '$lib/remotes/trips/trip.remote';
 
 	const myTrips = await getMyTrips();

@@ -2,7 +2,7 @@
 	import type { Activity } from '$db/schemas/itinerary';
 	import { deleteActivity } from '$lib/remotes/trips/activity.remote';
 	import { DollarSign, MapPin, Trash2 } from '@lucide/svelte';
-	import DeleteDialog from '../delete-dialog.svelte';
+	import DeleteDialog from '../../delete-dialog.svelte';
 	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import Button from '$ui/button/button.svelte';
 

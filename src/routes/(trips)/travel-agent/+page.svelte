@@ -5,14 +5,13 @@
 	import Input from '$ui/input/input.svelte';
 	import * as Field from '$ui/field';
 	import Spinner from '$ui/spinner/spinner.svelte';
-	import GlobeLoader from '$lib/components/trip/globe-loader.svelte';
+	import GlobeLoader from '$lib/components/travel-agent/globe-loader.svelte';
 	import ItineraryMap from '$lib/components/itinerary/itinerary-map.svelte';
 	import type { DayWithActivities } from '$db/schemas/itinerary';
 	import {
 		generateTripDraft,
 		saveGeneratedTrip,
-		type GeneratedTripDraft,
-		type TripAgentInput
+		type GeneratedTripDraft
 	} from '$lib/remotes/travel-agent/travel-agent.remote';
 
 	type PreviewDay = GeneratedTripDraft['days'][number] & {
@@ -20,20 +19,9 @@
 		longitude?: number | null;
 	};
 
-	let formState = $state<TripAgentInput>({
-		destinations: '',
-		numberOfDays: 7,
-		budget: '',
-		style: '',
-		pace: '',
-		interests: ''
-	});
+	let saveError = $state('');
 
-	let draft = $state<GeneratedTripDraft | null>(null);
-	let generating = $state(false);
-	let saving = $state(false);
-	let errorMessage = $state('');
-	let hasGenerated = $state(false);
+	const draft = $derived(generateTripDraft.result?.draft ?? null);
 
 	const styleOptions = ['Relaxed', 'Adventure', 'Food-focused', 'Luxury', 'Family'];
 	const paceOptions = ['Slow', 'Balanced', 'Packed'];
@@ -72,29 +60,9 @@
 
 	const hasMap = $derived(mapDays.some((d) => d.latitude != null && d.longitude != null));
 
-	async function onGenerate(event: SubmitEvent) {
-		event.preventDefault();
-		errorMessage = '';
-		generating = true;
-		hasGenerated = true;
-
-		try {
-			const result = await generateTripDraft({ input: formState });
-			draft = result.draft ?? null;
-			if (!draft) {
-				errorMessage = 'No itinerary was generated. Please try again.';
-			}
-		} catch {
-			errorMessage = 'Unable to generate itinerary right now. Please try again.';
-		} finally {
-			generating = false;
-		}
-	}
-
 	async function onSave() {
 		if (!draft) return;
-		errorMessage = '';
-		saving = true;
+		saveError = '';
 
 		try {
 			const result = await saveGeneratedTrip({ draft });
@@ -102,11 +70,9 @@
 				await goto(resolve(`/trips/${result.tripId}`));
 				return;
 			}
-			errorMessage = 'Trip was saved, but redirect failed. Please refresh your trips list.';
+			saveError = 'Trip was saved, but redirect failed. Please refresh your trips list.';
 		} catch {
-			errorMessage = 'Unable to save generated trip. Please try again.';
-		} finally {
-			saving = false;
+			saveError = 'Unable to save generated trip. Please try again.';
 		}
 	}
 </script>
@@ -120,43 +86,57 @@
 		</p>
 	</div>
 
-	<section
-		class="rounded-xl border bg-card p-4 shadow-sm {hasGenerated ? '' : 'mx-auto max-w-3xl'}"
-	>
-		<form class="space-y-3" onsubmit={onGenerate}>
+	<section class="rounded-xl border bg-card p-4 shadow-sm {draft ? '' : 'mx-auto max-w-3xl'}">
+		<form
+			{...generateTripDraft.enhance(async ({ submit }) => {
+				await submit();
+			})}
+			class="space-y-3"
+		>
+			{#each generateTripDraft.fields.issues() as issue (issue.message)}
+				<p class="text-sm text-destructive">{issue.message}</p>
+			{/each}
+
 			<div class="grid gap-3 md:grid-cols-2 lg:grid-cols-6">
 				<Field.Field class="lg:col-span-2">
 					<Field.Label for="destinations">Destination(s)</Field.Label>
 					<Input
+						{...generateTripDraft.fields.destinations.as('text')}
 						id="destinations"
-						bind:value={formState.destinations}
 						placeholder="Tokyo + Kyoto"
 						required
 					/>
+					<Field.Error errors={generateTripDraft.fields.destinations.issues()} />
 				</Field.Field>
 
 				<Field.Field>
 					<Field.Label for="numberOfDays">Days</Field.Label>
 					<Input
+						{...generateTripDraft.fields.numberOfDays.as('number')}
 						id="numberOfDays"
-						type="number"
-						bind:value={formState.numberOfDays}
 						min="1"
 						max="30"
 						required
 					/>
+					<Field.Error errors={generateTripDraft.fields.numberOfDays.issues()} />
 				</Field.Field>
 
 				<Field.Field>
 					<Field.Label for="budget">Budget</Field.Label>
-					<Input id="budget" bind:value={formState.budget} placeholder="~ $3500" required />
+					<Input
+						{...generateTripDraft.fields.budget.as('text')}
+						id="budget"
+						placeholder="~ $3500"
+						required
+					/>
+					<Field.Error errors={generateTripDraft.fields.budget.issues()} />
 				</Field.Field>
 
 				<Field.Field>
 					<Field.Label for="style">Style</Field.Label>
 					<select
+						{...generateTripDraft.fields.style.as('select')}
 						id="style"
-						bind:value={formState.style}
 						class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
 						required
 					>
@@ -165,13 +145,14 @@
 							<option value={option}>{option}</option>
 						{/each}
 					</select>
+					<Field.Error errors={generateTripDraft.fields.style.issues()} />
 				</Field.Field>
 
 				<Field.Field>
 					<Field.Label for="pace">Pace</Field.Label>
 					<select
+						{...generateTripDraft.fields.pace.as('select')}
 						id="pace"
-						bind:value={formState.pace}
 						class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
 						required
 					>
@@ -180,25 +161,27 @@
 							<option value={option}>{option}</option>
 						{/each}
 					</select>
+					<Field.Error errors={generateTripDraft.fields.pace.issues()} />
 				</Field.Field>
 
 				<Field.Field class="md:col-span-2 lg:col-span-6">
 					<Field.Label for="interests">Interests</Field.Label>
 					<Input
+						{...generateTripDraft.fields.interests.as('text')}
 						id="interests"
-						bind:value={formState.interests}
 						placeholder="Food, temples, nightlife, design"
 						required
 					/>
+					<Field.Error errors={generateTripDraft.fields.interests.issues()} />
 				</Field.Field>
 			</div>
 
 			<div class="flex items-center justify-between gap-3 pt-1">
 				<p class="text-xs text-muted-foreground">Flights are intentionally excluded for now.</p>
-				<Button type="submit" disabled={generating}>
-					{#if generating}
+				<Button type="submit" disabled={!!generateTripDraft.pending}>
+					{#if generateTripDraft.pending}
 						<Spinner class="size-4" />
-					{:else if hasGenerated}
+					{:else if draft}
 						Regenerate
 					{:else}
 						Generate itinerary
@@ -208,15 +191,15 @@
 		</form>
 	</section>
 
-	{#if errorMessage}
+	{#if saveError}
 		<p
 			class="mt-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
 		>
-			{errorMessage}
+			{saveError}
 		</p>
 	{/if}
 
-	{#if generating}
+	{#if generateTripDraft.pending}
 		<section class="mt-6 rounded-xl border bg-card p-6 shadow-sm">
 			<GlobeLoader label="Building your day-by-day plan..." />
 		</section>
@@ -249,8 +232,8 @@
 			<div class="rounded-xl border bg-card p-4 shadow-sm">
 				<div class="mb-3 flex items-center justify-between">
 					<h2 class="font-semibold">Day-by-day itinerary</h2>
-					<Button onclick={onSave} disabled={saving}>
-						{#if saving}
+					<Button onclick={onSave} disabled={!!saveGeneratedTrip.pending}>
+						{#if saveGeneratedTrip.pending}
 							<Spinner class="size-4" />
 						{:else}
 							Save to trips

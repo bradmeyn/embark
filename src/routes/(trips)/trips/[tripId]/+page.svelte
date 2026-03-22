@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import { page } from '$app/state';
-	import GetStarted from '$lib/components/itinerary/get-started.svelte';
+	import GetStarted from '$lib/components/itinerary/day/get-started.svelte';
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
-	import AddDayDialog from '$lib/components/itinerary/add-day-dialog.svelte';
+	import AddDayDialog from '$lib/components/itinerary/day/add-day-dialog.svelte';
 	import ItineraryMap from '$lib/components/itinerary/itinerary-map.svelte';
-	import DayListItem from '$lib/components/itinerary/day-list-item.svelte';
-	import DayDetail from '$lib/components/itinerary/day-detail.svelte';
+	import DayListItem from '$lib/components/itinerary/day/day-list-item.svelte';
+	import DayDetail from '$lib/components/itinerary/day/day-detail.svelte';
 	import { groupLocationsByConsecutive } from '$lib/utils';
 
 	const trip = $derived(await getTrip(page.params.tripId!));

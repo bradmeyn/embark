@@ -4,8 +4,8 @@
 	import { EllipsisVertical, Pencil, Trash2, Share2 } from '@lucide/svelte';
 
 	import DeleteDialog from '$lib/components/delete-dialog.svelte';
-	import EditTripDialog from '$lib/components/trip/edit-trip-dialog.svelte';
-	import ShareDialog from '$lib/components/trip/share-dialog.svelte';
+	import EditTripDialog from '$lib/components/itinerary/trip/edit-trip-dialog.svelte';
+	import ShareDialog from '$lib/components/itinerary/trip/share-dialog.svelte';
 	import type { TripWithBasicDays } from '$db/schemas/itinerary';
 	import { deleteTrip } from '$lib/remotes/trips/trip.remote';
 

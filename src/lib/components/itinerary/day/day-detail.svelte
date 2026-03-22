@@ -2,14 +2,14 @@
 	import type { DayWithActivities, Hotel } from '$db/schemas/itinerary';
 	import { deleteDay } from '$lib/remotes/trips/day.remote';
 	import { getTrip } from '$lib/remotes/trips/trip.remote';
-	import AddActivityDialog from './add-activity-dialog.svelte';
-	import AddHotelDialog from './add-hotel-dialog.svelte';
-	import AddFlightDialog from './add-flight-dialog.svelte';
+	import AddActivityDialog from '../activity/add-activity-dialog.svelte';
+	import AddHotelDialog from '../hotel/add-hotel-dialog.svelte';
+	import AddFlightDialog from '../flight/add-flight-dialog.svelte';
 	import EditDayDialog from './edit-day-dialog.svelte';
-	import DeleteDialog from '../delete-dialog.svelte';
-	import ActivityCard from './activity-card.svelte';
-	import HotelCard from './hotel-card.svelte';
-	import FlightCard from './flight-card.svelte';
+	import DeleteDialog from '../../delete-dialog.svelte';
+	import ActivityCard from '../activity/activity-card.svelte';
+	import HotelCard from '../hotel/hotel-card.svelte';
+	import FlightCard from '../flight/flight-card.svelte';
 	import Button from '$ui/button/button.svelte';
 	import { Plus, Pencil, Trash2, Plane, Building2 } from '@lucide/svelte';
 

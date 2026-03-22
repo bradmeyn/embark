@@ -1,4 +1,4 @@
-import { command } from '$app/server';
+import { command, form } from '$app/server';
 import { error } from '@sveltejs/kit';
 import { z } from 'zod';
 import { db } from '$db';
@@ -52,10 +52,6 @@ const generatedTripSchema = z.object({
 	days: z.array(generatedDaySchema).min(1)
 });
 
-const generateTripSchema = z.object({
-	input: tripAgentInputSchema
-});
-
 const saveGeneratedTripSchema = z.object({
 	draft: generatedTripSchema
 });
@@ -95,7 +91,7 @@ async function getAuthedUser() {
 	return user;
 }
 
-export const generateTripDraft = command(generateTripSchema, async ({ input }) => {
+export const generateTripDraft = form(tripAgentInputSchema, async (input) => {
 	await getAuthedUser();
 
 	let modelOutput: unknown;
