@@ -2,7 +2,7 @@
 	import Button from '$ui/button/button.svelte';
 	import Input from '$ui/input/input.svelte';
 	import * as Field from '$ui/field';
-	import { Select } from '$ui/select';
+	import * as Select from '$ui/select';
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import { generateTripDraft } from '$lib/remotes/travel-agent/travel-agent.remote';
 
@@ -62,25 +62,35 @@
 
 		<Field.Field>
 			<Field.Label>Style</Field.Label>
-			<Select
-				name="style"
-				bind:value={styleValue}
-				options={styleOptions}
-				placeholder="Choose style"
-				required
-			/>
+			<Select.Root type="single" name="style" bind:value={styleValue} required>
+				<Select.Trigger class="w-full">
+					<span data-slot="select-value" class={styleValue ? '' : 'text-muted-foreground'}>
+						{styleValue || 'Choose style'}
+					</span>
+				</Select.Trigger>
+				<Select.Content>
+					{#each styleOptions as option (option)}
+						<Select.Item value={option} label={option} />
+					{/each}
+				</Select.Content>
+			</Select.Root>
 			<Field.Error errors={generateTripDraft.fields.style.issues()} />
 		</Field.Field>
 
 		<Field.Field>
 			<Field.Label>Pace</Field.Label>
-			<Select
-				name="pace"
-				bind:value={paceValue}
-				options={paceOptions}
-				placeholder="Choose pace"
-				required
-			/>
+			<Select.Root type="single" name="pace" bind:value={paceValue} required>
+				<Select.Trigger class="w-full">
+					<span data-slot="select-value" class={paceValue ? '' : 'text-muted-foreground'}>
+						{paceValue || 'Choose pace'}
+					</span>
+				</Select.Trigger>
+				<Select.Content>
+					{#each paceOptions as option (option)}
+						<Select.Item value={option} label={option} />
+					{/each}
+				</Select.Content>
+			</Select.Root>
 			<Field.Error errors={generateTripDraft.fields.pace.issues()} />
 		</Field.Field>
 
