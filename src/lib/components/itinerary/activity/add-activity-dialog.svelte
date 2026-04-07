@@ -21,6 +21,7 @@
 	} = $props();
 
 	let suggestion = $state<Awaited<ReturnType<typeof suggestActivityForDay>>['suggestion'] | null>(null);
+	let submitError = $state<string | null>(null);
 </script>
 
 <Dialog.Root bind:open>
@@ -43,9 +44,13 @@
 		{#each addActivity.fields.issues() as issue (issue.message)}
 			<p class="text-sm text-red-600">{issue.message}</p>
 		{/each}
+		{#if submitError}
+			<p class="text-sm text-destructive">{submitError}</p>
+		{/if}
 
 		<form
 			{...addActivity.for(dayId).enhance(async ({ form, submit }) => {
+				submitError = null;
 				try {
 					await submit().updates(getTrip(tripId));
 					form.reset();
@@ -53,6 +58,7 @@
 					open = false;
 				} catch (e) {
 					console.error('Error adding activity', e);
+					submitError = 'Failed to add activity. Please try again.';
 				}
 			})}
 			class="space-y-3"

@@ -118,6 +118,45 @@ export const cancelInvite = command(
 	}
 );
 
+export const resendInvite = command(
+	z.object({ inviteId: z.string() }),
+	async ({ inviteId }) => {
+		const user = await getCurrentUser();
+		if (!user) error(401, 'Unauthorized');
+
+		const invite = await db.query.tripInviteTable.findFirst({
+			where: eq(tripInviteTable.id, inviteId),
+			with: { trip: true }
+		});
+
+		if (!invite) error(404, 'Invite not found');
+
+		await assertTripOwner(invite.tripId, user.id);
+
+		const newToken = randomBytes(32).toString('base64url');
+		const newExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+		await db
+			.update(tripInviteTable)
+			.set({ inviteToken: newToken, expiresAt: newExpiresAt })
+			.where(eq(tripInviteTable.id, inviteId));
+
+		const baseUrl = env.PUBLIC_BASE_URL ?? '';
+		const acceptUrl = `${baseUrl}/invite/accept/${newToken}`;
+
+		await sendEmail({
+			to: invite.invitedEmail,
+			subject: `You're invited to join "${invite.trip.name}" on Embark`,
+			html: `<p>You've been invited to collaborate on <strong>${invite.trip.name}</strong>.</p>
+				   <p><a href="${acceptUrl}">Click here to accept the invitation</a> (expires in 7 days)</p>`
+		});
+
+		await getCollaborators(invite.tripId).refresh();
+
+		return { success: true };
+	}
+);
+
 export const getInviteDetails = query(z.string(), async (token: string) => {
 	const invite = await db.query.tripInviteTable.findFirst({
 		where: eq(tripInviteTable.inviteToken, token),

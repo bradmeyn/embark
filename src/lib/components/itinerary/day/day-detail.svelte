@@ -25,6 +25,12 @@
 	let editDayOpen = $state(false);
 	let deleteDialogOpen = $state(false);
 
+	const dayCost = $derived(
+		day.activities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0) +
+			day.hotels.reduce((sum, h) => sum + (Number(h.cost) || 0), 0) +
+			day.flights.reduce((sum, f) => sum + (Number(f.cost) || 0), 0)
+	);
+
 	const sortedActivities = $derived(
 		[...day.activities].sort((a, b) => {
 			const aTime = a.time ? new Date(a.time).getTime() : Number.POSITIVE_INFINITY;
@@ -64,6 +70,11 @@
 			<h2 class="mt-1 font-serif text-2xl font-light">{day.location}</h2>
 			{#if day.overview}
 				<p class="mt-1 text-sm text-muted-foreground">{day.overview}</p>
+			{/if}
+			{#if dayCost > 0}
+				<p class="mt-1 text-xs text-muted-foreground">
+					Day total: <span class="font-medium text-foreground">${dayCost.toFixed(2)}</span>
+				</p>
 			{/if}
 		</div>
 		<div class="flex shrink-0 items-center gap-1">

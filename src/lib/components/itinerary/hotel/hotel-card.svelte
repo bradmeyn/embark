@@ -17,11 +17,15 @@
 
 	let deleteDialogOpen = $state(false);
 	let editDialogOpen = $state(false);
+	let deleteError = $state<string | null>(null);
 
 	async function handleDeleteHotel() {
+		deleteError = null;
 		try {
 			await deleteHotel({ hotelId: hotel.id }).updates(getTrip(tripId));
-		} finally {
+		} catch (e) {
+			console.error('Error deleting hotel', e);
+			deleteError = 'Failed to delete accommodation. Please try again.';
 		}
 	}
 </script>
@@ -55,6 +59,9 @@
 
 			{#if hotel.notes}
 				<p class="mt-1 text-xs text-muted-foreground">{hotel.notes}</p>
+			{/if}
+			{#if deleteError}
+				<p class="mt-1 text-xs text-destructive">{deleteError}</p>
 			{/if}
 		</div>
 	</div>

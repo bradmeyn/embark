@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, integer, real, uniqueIndex } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, integer, real, uniqueIndex, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { user } from './auth';
 
@@ -84,6 +84,17 @@ export const flightTable = pgTable('flight', {
 	...timesStamps
 });
 
+export const packingItemTable = pgTable('packing_item', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	tripId: uuid('trip_id')
+		.notNull()
+		.references(() => tripTable.id, { onDelete: 'cascade' }),
+	name: text('name').notNull(),
+	packed: boolean('packed').default(false).notNull(),
+	category: text('category'),
+	...timesStamps
+});
+
 export const tripCollaboratorTable = pgTable(
 	'trip_collaborator',
 	{
@@ -122,7 +133,8 @@ export const tripRelations = relations(tripTable, ({ many, one }) => ({
 		references: [user.id]
 	}),
 	collaborators: many(tripCollaboratorTable),
-	invites: many(tripInviteTable)
+	invites: many(tripInviteTable),
+	packingItems: many(packingItemTable)
 }));
 
 export const dayRelations = relations(dayTable, ({ one, many }) => ({
@@ -153,6 +165,13 @@ export const flightRelations = relations(flightTable, ({ one }) => ({
 	day: one(dayTable, {
 		fields: [flightTable.dayId],
 		references: [dayTable.id]
+	})
+}));
+
+export const packingItemRelations = relations(packingItemTable, ({ one }) => ({
+	trip: one(tripTable, {
+		fields: [packingItemTable.tripId],
+		references: [tripTable.id]
 	})
 }));
 
@@ -193,6 +212,8 @@ export type DayWithActivities = Day & {
 export type TripWithBasicDays = Trip & {
 	days: Day[];
 };
+
+export type PackingItem = typeof packingItemTable.$inferSelect;
 
 export type TripWithDays = Trip & {
 	days: DayWithActivities[];

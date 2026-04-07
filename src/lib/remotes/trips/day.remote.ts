@@ -102,14 +102,13 @@ export const deleteDay = command(z.object({ dayId: z.string() }), async ({ dayId
 
 	await assertTripAccess(day.tripId, user.id);
 
-	await db.delete(dayTable).where(eq(dayTable.id, dayId));
-
-	await db
-		.update(dayTable)
-		.set({
-			dayNumber: sql`${dayTable.dayNumber} - 1`
-		})
-		.where(and(eq(dayTable.tripId, day.tripId), gt(dayTable.dayNumber, day.dayNumber)));
+	await db.transaction(async (tx) => {
+		await tx.delete(dayTable).where(eq(dayTable.id, dayId));
+		await tx
+			.update(dayTable)
+			.set({ dayNumber: sql`${dayTable.dayNumber} - 1` })
+			.where(and(eq(dayTable.tripId, day.tripId), gt(dayTable.dayNumber, day.dayNumber)));
+	});
 
 	return { success: true };
 });

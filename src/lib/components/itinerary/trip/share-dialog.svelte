@@ -8,8 +8,10 @@
 		getCollaborators,
 		inviteCollaborator,
 		removeCollaborator,
-		cancelInvite
+		cancelInvite,
+		resendInvite
 	} from '$lib/remotes/collaborator.remote';
+	import { RotateCcw } from '@lucide/svelte';
 	import { env } from '$env/dynamic/public';
 
 	let {
@@ -183,21 +185,39 @@
 								</li>
 							{/each}
 							{#each collaboratorsData.pendingInvites as invite (invite.id)}
+								{@const isExpired = new Date(invite.expiresAt) < new Date()}
 								<li
 									class="flex items-center justify-between rounded-md border border-dashed px-3 py-2"
 								>
 									<div>
 										<p class="text-sm">{invite.invitedEmail}</p>
-										<p class="text-xs text-amber-600">Pending invite</p>
+										{#if isExpired}
+											<p class="text-xs text-destructive">Invite expired</p>
+										{:else}
+											<p class="text-xs text-amber-600">
+												Pending · expires {new Date(invite.expiresAt).toLocaleDateString()}
+											</p>
+										{/if}
 									</div>
-									<Button
-										variant="ghost"
-										size="icon"
-										class="size-7 text-destructive hover:bg-destructive/10"
-										onclick={() => cancelInvite({ inviteId: invite.id })}
-									>
-										<X class="size-3.5" />
-									</Button>
+									<div class="flex gap-1">
+										<Button
+											variant="ghost"
+											size="icon"
+											class="size-7 text-muted-foreground hover:text-foreground"
+											onclick={() => resendInvite({ inviteId: invite.id })}
+											title="Resend invite"
+										>
+											<RotateCcw class="size-3.5" />
+										</Button>
+										<Button
+											variant="ghost"
+											size="icon"
+											class="size-7 text-destructive hover:bg-destructive/10"
+											onclick={() => cancelInvite({ inviteId: invite.id })}
+										>
+											<X class="size-3.5" />
+										</Button>
+									</div>
 								</li>
 							{/each}
 						</ul>

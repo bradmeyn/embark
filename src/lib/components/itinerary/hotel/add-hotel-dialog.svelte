@@ -21,6 +21,7 @@
 	} = $props();
 
 	let suggestion = $state<Awaited<ReturnType<typeof suggestHotelForDay>>['suggestion'] | null>(null);
+	let submitError = $state<string | null>(null);
 </script>
 
 <Dialog.Root bind:open>
@@ -43,9 +44,13 @@
 		{#each addHotel.fields.issues() as issue (issue.message)}
 			<p class="text-sm text-red-600">{issue.message}</p>
 		{/each}
+		{#if submitError}
+			<p class="text-sm text-destructive">{submitError}</p>
+		{/if}
 
 		<form
 			{...addHotel.for(dayId).enhance(async ({ form, submit }) => {
+				submitError = null;
 				try {
 					await submit().updates(getTrip(tripId));
 					form.reset();
@@ -53,6 +58,7 @@
 					open = false;
 				} catch (e) {
 					console.error('Error adding hotel', e);
+					submitError = 'Failed to add accommodation. Please try again.';
 				}
 			})}
 			class="space-y-3"
@@ -138,6 +144,19 @@
 					<Field.Error />
 				</Field.Field>
 			</div>
+
+			<Field.Field>
+				<Field.Label for="notes">Notes</Field.Label>
+				<textarea
+					id="notes"
+					{...addHotel.fields.notes.as('text')}
+					value={suggestion?.notes ?? ''}
+					rows="2"
+					class="w-full rounded-md border p-2"
+					placeholder="Any additional notes..."
+				></textarea>
+				<Field.Error />
+			</Field.Field>
 
 			<input type="hidden" name="dayId" value={dayId} />
 

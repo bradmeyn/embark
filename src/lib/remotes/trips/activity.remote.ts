@@ -79,6 +79,45 @@ export const getActivities = query(z.string(), async (dayId: string) => {
 	return activities;
 });
 
+const editActivitySchema = z.object({
+	id: z.string(),
+	name: z.string().min(1, 'Activity name is required'),
+	description: z.string().optional(),
+	cost: z.number().min(0, 'Cost must be at least 0').optional(),
+	startTime: z.string().optional(),
+	location: z.string().optional()
+});
+
+export const editActivity = form(
+	editActivitySchema,
+	async ({ id, name, description, cost, startTime, location }) => {
+		const user = await getCurrentUser();
+		if (!user) error(401, 'Unauthorized');
+
+		const activity = await db.query.activityTable.findFirst({
+			where: eq(activityTable.id, id),
+			with: { day: true }
+		});
+
+		if (!activity) error(404, 'Activity not found');
+
+		await assertTripAccess(activity.day.tripId, user.id);
+
+		await db
+			.update(activityTable)
+			.set({
+				name,
+				description: description ?? null,
+				location: location ?? null,
+				cost: cost != null ? String(cost) : null,
+				time: normalizeTimeInput(startTime)
+			})
+			.where(eq(activityTable.id, id));
+
+		return { success: true };
+	}
+);
+
 export const deleteActivity = command(
 	z.object({ activityId: z.string() }),
 	async ({ activityId }) => {

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { Activity } from '$db/schemas/itinerary';
 	import { deleteActivity } from '$lib/remotes/trips/activity.remote';
-	import { DollarSign, MapPin, Trash2 } from '@lucide/svelte';
+	import { DollarSign, MapPin, Pencil, Trash2 } from '@lucide/svelte';
 	import DeleteDialog from '../../delete-dialog.svelte';
+	import EditActivityDialog from './edit-activity-dialog.svelte';
 	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import Button from '$ui/button/button.svelte';
 
@@ -15,6 +16,8 @@
 	} = $props();
 
 	let deleteDialogOpen = $state(false);
+	let editDialogOpen = $state(false);
+	let deleteError = $state<string | null>(null);
 
 	const timeFormatter = new Intl.DateTimeFormat(undefined, {
 		hour: 'numeric',
@@ -31,10 +34,12 @@
 	}
 
 	async function handleDeleteActivity(activityId: string) {
+		deleteError = null;
 		try {
 			await deleteActivity({ activityId }).updates(getTrip(tripId));
 		} catch (e) {
 			console.error('Error deleting activity', e);
+			deleteError = 'Failed to delete activity. Please try again.';
 		}
 	}
 </script>
@@ -63,12 +68,34 @@
 				</div>
 			{/if}
 		</div>
+
+		{#if deleteError}
+			<p class="mt-1 text-xs text-destructive">{deleteError}</p>
+		{/if}
 	</div>
-	<Button variant="ghost" size="sm" onclick={() => (deleteDialogOpen = true)}>
-		<Trash2 class="size-4" />
-	</Button>
+	<div class="flex shrink-0 gap-1">
+		<Button
+			variant="ghost"
+			size="icon"
+			class="size-8"
+			onclick={() => (editDialogOpen = true)}
+			aria-label="Edit activity"
+		>
+			<Pencil class="size-3.5" />
+		</Button>
+		<Button
+			variant="ghost"
+			size="icon"
+			class="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+			onclick={() => (deleteDialogOpen = true)}
+			aria-label="Delete activity"
+		>
+			<Trash2 class="size-4" />
+		</Button>
+	</div>
 </li>
 
+<EditActivityDialog {activity} {tripId} bind:open={editDialogOpen} showTrigger={false} />
 <DeleteDialog
 	label="activity"
 	onDelete={() => handleDeleteActivity(activity.id)}

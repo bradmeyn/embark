@@ -8,6 +8,13 @@
 	import DayListItem from '$lib/components/itinerary/day/day-list-item.svelte';
 	import DayDetail from '$lib/components/itinerary/day/day-detail.svelte';
 	import { groupLocationsByConsecutive } from '$lib/utils';
+	import { Printer, PackageCheck, LayoutGrid, List } from '@lucide/svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import PackingListDialog from '$lib/components/itinerary/trip/packing-list-dialog.svelte';
+	import DayOverviewGrid from '$lib/components/itinerary/day/day-overview-grid.svelte';
+
+	let packingOpen = $state(false);
+	let viewMode = $state<'detail' | 'overview'>('detail');
 
 	const trip = $derived(await getTrip(page.params.tripId!));
 	const nextDayNumber = $derived(
@@ -46,11 +53,22 @@
 	);
 
 	const mapKey = $derived(trip.days.map((d) => `${d.id}:${d.latitude}:${d.longitude}`).join(','));
+
+	const tripTotal = $derived(
+		trip.days.reduce(
+			(sum, day) =>
+				sum +
+				day.activities.reduce((s, a) => s + (Number(a.cost) || 0), 0) +
+				day.hotels.reduce((s, h) => s + (Number(h.cost) || 0), 0) +
+				day.flights.reduce((s, f) => s + (Number(f.cost) || 0), 0),
+			0
+		)
+	);
 </script>
 
 <div class="flex h-full flex-col bg-background">
 	<!-- Header bar -->
-	<div class="flex shrink-0 items-center justify-between border-b px-4 py-3">
+	<div class="flex shrink-0 items-center justify-between border-b px-4 py-3 print:hidden">
 		<Breadcrumb.Root>
 			<Breadcrumb.List>
 				<Breadcrumb.Item>
@@ -63,16 +81,52 @@
 			</Breadcrumb.List>
 		</Breadcrumb.Root>
 
-		{#if trip.days.length > 0}
-			<div class="flex items-center gap-3">
+		<div class="flex items-center gap-2">
+			{#if trip.days.length > 0}
 				<span class="hidden text-sm text-muted-foreground sm:block">
 					{trip.days.length}
 					{trip.days.length === 1 ? 'day' : 'days'} planned
 				</span>
 				<AddDayDialog tripId={trip.id} {nextDayNumber} />
-			</div>
-		{/if}
+			{/if}
+			{#if trip.days.length > 0}
+				<Button
+					variant="ghost"
+					size="icon"
+					class="size-8"
+					onclick={() => (viewMode = viewMode === 'overview' ? 'detail' : 'overview')}
+					aria-label={viewMode === 'overview' ? 'Day detail view' : 'Overview grid'}
+					title={viewMode === 'overview' ? 'Day detail view' : 'Overview grid'}
+				>
+					{#if viewMode === 'overview'}
+						<List class="size-4" />
+					{:else}
+						<LayoutGrid class="size-4" />
+					{/if}
+				</Button>
+			{/if}
+			<Button
+				variant="ghost"
+				size="icon"
+				class="size-8"
+				onclick={() => (packingOpen = true)}
+				aria-label="Packing list"
+			>
+				<PackageCheck class="size-4" />
+			</Button>
+			<Button
+				variant="ghost"
+				size="icon"
+				class="size-8"
+				onclick={() => window.print()}
+				aria-label="Print itinerary"
+			>
+				<Printer class="size-4" />
+			</Button>
+		</div>
 	</div>
+
+	<PackingListDialog tripId={trip.id} bind:open={packingOpen} showTrigger={false} />
 
 	{#if trip.days.length === 0}
 		<div class="flex-1 overflow-y-auto p-6">
@@ -112,9 +166,11 @@
 								{/if}
 							</div>
 						{/each}
-						<div class="ml-auto shrink-0 pl-3 text-xs text-muted-foreground">
-							{trip.days.length}
-							{trip.days.length === 1 ? 'day' : 'days'}
+						<div class="ml-auto flex shrink-0 items-center gap-3 pl-3 text-xs text-muted-foreground">
+							<span>{trip.days.length} {trip.days.length === 1 ? 'day' : 'days'}</span>
+							{#if tripTotal > 0}
+								<span class="font-medium text-foreground">${tripTotal.toFixed(2)} total</span>
+							{/if}
 						</div>
 					</div>
 				</div>
@@ -122,7 +178,7 @@
 
 			<div class="flex flex-1 overflow-hidden">
 				<!-- Sidebar -->
-				<div class="flex w-48 shrink-0 flex-col border-r">
+				<div class="flex w-48 shrink-0 flex-col border-r print:hidden">
 					<div class="flex-1 space-y-1 overflow-y-auto p-1.5">
 						{#each trip.days as day (day.id)}
 							<button onclick={() => (selectedDayId = day.id)} class="w-full text-left">
@@ -134,9 +190,39 @@
 
 				<!-- Detail panel -->
 				<div class="flex-1 overflow-y-auto">
-					{#if selectedDay}
-						<DayDetail day={selectedDay} tripId={trip.id} {activeHotels} />
-					{/if}
+					<!-- Screen: show selected day or overview grid -->
+					<div class="print:hidden">
+						{#if viewMode === 'overview'}
+							<DayOverviewGrid
+								days={trip.days}
+								onSelectDay={(id) => {
+									selectedDayId = id;
+									viewMode = 'detail';
+								}}
+							/>
+						{:else if selectedDay}
+							<DayDetail day={selectedDay} tripId={trip.id} {activeHotels} />
+						{/if}
+					</div>
+					<!-- Print: show all days -->
+					<div class="hidden print:block">
+						{#each trip.days as day (day.id)}
+							{@const printActiveHotels = trip.days
+								.flatMap((d) => d.hotels)
+								.filter((hotel) => {
+									const checkInDay = trip.days.find((d) => d.id === hotel.dayId);
+									if (!checkInDay) return false;
+									const nights = hotel.nights ?? 1;
+									return (
+										day.dayNumber >= checkInDay.dayNumber &&
+										day.dayNumber < checkInDay.dayNumber + nights
+									);
+								})}
+							<div class="break-inside-avoid border-b last:border-0">
+								<DayDetail {day} tripId={trip.id} activeHotels={printActiveHotels} />
+							</div>
+						{/each}
+					</div>
 				</div>
 			</div>
 		</div>
@@ -197,7 +283,15 @@
 
 			<!-- Day detail -->
 			<div class="flex-1 overflow-y-auto">
-				{#if selectedDay}
+				{#if viewMode === 'overview'}
+					<DayOverviewGrid
+						days={trip.days}
+						onSelectDay={(id) => {
+							selectedDayId = id;
+							viewMode = 'detail';
+						}}
+					/>
+				{:else if selectedDay}
 					<DayDetail day={selectedDay} tripId={trip.id} {activeHotels} />
 				{/if}
 			</div>

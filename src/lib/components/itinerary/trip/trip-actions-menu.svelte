@@ -2,12 +2,26 @@
 	import * as DropdownMenu from '$ui/dropdown-menu/index.js';
 	import { buttonVariants } from '$ui/button';
 	import { EllipsisVertical, Pencil, Trash2, Share2 } from '@lucide/svelte';
+	let duplicating = $state(false);
+
+	async function handleDuplicate() {
+		menuOpen = false;
+		duplicating = true;
+		try {
+			const result = await duplicateTrip({ tripId: trip.id });
+			await goto(`/trips/${result.tripId}`);
+		} finally {
+			duplicating = false;
+		}
+	}
 
 	import DeleteDialog from '$lib/components/delete-dialog.svelte';
 	import EditTripDialog from '$lib/components/itinerary/trip/edit-trip-dialog.svelte';
 	import ShareDialog from '$lib/components/itinerary/trip/share-dialog.svelte';
 	import type { TripWithBasicDays } from '$db/schemas/itinerary';
-	import { deleteTrip } from '$lib/remotes/trips/trip.remote';
+	import { deleteTrip, duplicateTrip } from '$lib/remotes/trips/trip.remote';
+	import { goto } from '$app/navigation';
+	import { Copy } from '@lucide/svelte';
 
 	let { trip }: { trip: TripWithBasicDays } = $props();
 
@@ -49,6 +63,10 @@
 			>
 				<Share2 class="size-4" />
 				<span>Share & Collaborate</span>
+			</DropdownMenu.Item>
+			<DropdownMenu.Item onclick={handleDuplicate} disabled={duplicating}>
+				<Copy class="size-4" />
+				<span>{duplicating ? 'Duplicating...' : 'Duplicate Trip'}</span>
 			</DropdownMenu.Item>
 			<DropdownMenu.Separator />
 			<DropdownMenu.Item
