@@ -7,13 +7,15 @@
 		days,
 		travelSegments,
 		tripId,
-		selectedDayId = $bindable(),
+		selectedDayId,
+		onSelectDay,
 		onInsertDay
 	}: {
 		days: DayWithActivities[];
 		travelSegments: TravelSegment[];
 		tripId: string;
 		selectedDayId: string | null;
+		onSelectDay: (id: string) => void;
 		onInsertDay: (atPosition: number) => void;
 	} = $props();
 </script>
@@ -43,7 +45,7 @@
 
 				<!-- Content column: day item only -->
 				<div class="min-w-0 flex-1 {hasNext ? 'pb-3' : ''}">
-					<button onclick={() => (selectedDayId = day.id)} class="w-full text-left">
+					<button onclick={() => onSelectDay(day.id)} class="w-full text-left">
 						<DayListItem {day} active={selectedDayId === day.id} {outgoingSegment} />
 					</button>
 

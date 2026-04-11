@@ -25,16 +25,9 @@
 
 	let selectedDayId = $state<string | null>(null);
 
-	$effect(() => {
-		const ids = trip.days.map((d) => d.id);
-		if (!selectedDayId && ids.length > 0) {
-			selectedDayId = ids[0];
-		} else if (selectedDayId && !ids.includes(selectedDayId)) {
-			selectedDayId = ids[0] ?? null;
-		}
-	});
-
-	const selectedDay = $derived(trip.days.find((d) => d.id === selectedDayId) ?? null);
+	const selectedDay = $derived(
+		trip.days.find((d) => d.id === selectedDayId) ?? trip.days[0] ?? null
+	);
 
 	const outgoingSegment = $derived(
 		selectedDay ? (trip.travelSegments.find((s) => s.fromDayId === selectedDay.id) ?? null) : null
@@ -102,7 +95,8 @@
 					days={trip.days}
 					travelSegments={trip.travelSegments}
 					tripId={trip.id}
-					bind:selectedDayId
+					selectedDayId={selectedDay?.id ?? null}
+					onSelectDay={(id) => (selectedDayId = id)}
 					onInsertDay={(pos) => {
 						insertAtPosition = pos;
 						insertOpen = true;
@@ -139,7 +133,8 @@
 
 			<MobileDaySelector
 				days={trip.days}
-				bind:selectedDayId
+				selectedDayId={selectedDay?.id ?? null}
+				onSelectDay={(id) => (selectedDayId = id)}
 				onInsertDay={(pos) => {
 					insertAtPosition = pos;
 					insertOpen = true;

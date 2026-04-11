@@ -4,11 +4,13 @@
 
 	let {
 		days,
-		selectedDayId = $bindable(),
+		selectedDayId,
+		onSelectDay,
 		onInsertDay
 	}: {
 		days: DayWithActivities[];
 		selectedDayId: string | null;
+		onSelectDay: (id: string) => void;
 		onInsertDay: (atPosition: number) => void;
 	} = $props();
 </script>
@@ -17,7 +19,7 @@
 	<div class="scrollbar-none flex items-center gap-1 overflow-x-auto px-3 py-2">
 		{#each days as day, i (day.id)}
 			<button
-				onclick={() => (selectedDayId = day.id)}
+				onclick={() => onSelectDay(day.id)}
 				class="flex shrink-0 flex-col items-start rounded-lg border px-3 py-2 text-left transition-colors {selectedDayId ===
 				day.id
 					? 'border-primary bg-primary/5'
