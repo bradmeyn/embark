@@ -1,11 +1,18 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
-	import type { DayWithActivities } from '$db/schemas/itinerary';
+	import type { DayWithActivities, TravelSegment } from '$db/schemas/itinerary';
 	import { groupLocationsByConsecutive } from '$lib/utils';
 
-	let { days, class: className = 'h-[600px] ' }: { days: DayWithActivities[]; class?: string } =
-		$props();
+	let {
+		days,
+		travelSegments = [],
+		class: className = 'h-[600px] '
+	}: {
+		days: DayWithActivities[];
+		travelSegments?: TravelSegment[];
+		class?: string;
+	} = $props();
 
 	let mapContainer: HTMLDivElement;
 	let map: import('maplibre-gl').Map | undefined;
@@ -18,15 +25,20 @@
 				const matchingDay = days.find(
 					(d) => d.location === group.location && d.latitude != null && d.longitude != null
 				);
+				// Find the last day of this group (the departure day when travelling to next location)
+				const lastDayNumber = group.startDay + group.days - 1;
+				const lastDay = days.find((d) => d.dayNumber === lastDayNumber);
 				return {
 					...group,
 					lat: matchingDay?.latitude ?? null,
-					lng: matchingDay?.longitude ?? null
+					lng: matchingDay?.longitude ?? null,
+					lastDayId: lastDay?.id ?? null
 				};
 			})
 			.filter((g) => g.lat != null && g.lng != null) as ((typeof groups)[number] & {
 			lat: number;
 			lng: number;
+			lastDayId: string | null;
 		})[];
 	}
 
@@ -38,6 +50,9 @@
 
 		const geocodedGroups = getGeocodedGroups();
 		if (geocodedGroups.length === 0) return;
+
+		// Build a lookup from fromDayId → segment
+		const segmentByFromDayId = new Map(travelSegments.map((s) => [s.fromDayId, s]));
 
 		map = new maplibre.Map({
 			container: mapContainer,
@@ -79,28 +94,53 @@
 					.addTo(map!);
 			});
 
-			// Add route line if 2+ locations
-			if (geocodedGroups.length >= 2) {
-				map.addSource('route', {
+			// Add per-segment route lines
+			for (let i = 0; i < geocodedGroups.length - 1; i++) {
+				const fromGroup = geocodedGroups[i];
+				const toGroup = geocodedGroups[i + 1];
+				const segment = fromGroup.lastDayId
+					? segmentByFromDayId.get(fromGroup.lastDayId)
+					: undefined;
+
+				const isCarWithRoute = segment?.mode === 'car' && segment.routeGeometry != null;
+
+				let coordinates: [number, number][];
+				if (isCarWithRoute) {
+					try {
+						coordinates = JSON.parse(segment!.routeGeometry!) as [number, number][];
+					} catch {
+						coordinates = [
+							[fromGroup.lng, fromGroup.lat],
+							[toGroup.lng, toGroup.lat]
+						];
+					}
+				} else {
+					coordinates = [
+						[fromGroup.lng, fromGroup.lat],
+						[toGroup.lng, toGroup.lat]
+					];
+				}
+
+				const sourceId = `route-segment-${i}`;
+				const layerId = `route-layer-${i}`;
+
+				map!.addSource(sourceId, {
 					type: 'geojson',
 					data: {
 						type: 'Feature',
-						geometry: {
-							type: 'LineString',
-							coordinates: geocodedGroups.map((g) => [g.lng, g.lat])
-						},
+						geometry: { type: 'LineString', coordinates },
 						properties: {}
 					}
 				});
 
-				map.addLayer({
-					id: 'route',
+				map!.addLayer({
+					id: layerId,
 					type: 'line',
-					source: 'route',
+					source: sourceId,
 					paint: {
 						'line-color': '#c2410c',
-						'line-width': 2,
-						'line-dasharray': [2, 3]
+						'line-width': isCarWithRoute ? 3 : 2,
+						...(isCarWithRoute ? {} : { 'line-dasharray': [2, 3] })
 					}
 				});
 			}

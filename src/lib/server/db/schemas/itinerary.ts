@@ -1,4 +1,13 @@
-import { pgTable, text, timestamp, uuid, integer, real, uniqueIndex, boolean } from 'drizzle-orm/pg-core';
+import {
+	pgTable,
+	text,
+	timestamp,
+	uuid,
+	integer,
+	real,
+	uniqueIndex,
+	boolean
+} from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { user } from './auth';
 
@@ -125,6 +134,26 @@ export const tripInviteTable = pgTable(
 	(t) => [uniqueIndex('trip_invite_unique').on(t.tripId, t.invitedEmail)]
 );
 
+export const travelSegmentTable = pgTable('travel_segment', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	tripId: uuid('trip_id')
+		.notNull()
+		.references(() => tripTable.id, { onDelete: 'cascade' }),
+	// The day this segment departs from. Unique so there's only one segment per day boundary.
+	fromDayId: uuid('from_day_id')
+		.notNull()
+		.unique()
+		.references(() => dayTable.id, { onDelete: 'cascade' }),
+	mode: text('mode').notNull().default('other'),
+	departureTime: text('departure_time'),
+	arrivalTime: text('arrival_time'),
+	notes: text('notes'),
+	cost: text('cost'),
+	// Stored GeoJSON coordinate array JSON string for car routes fetched from OSRM
+	routeGeometry: text('route_geometry'),
+	...timesStamps
+});
+
 // Relations
 export const tripRelations = relations(tripTable, ({ many, one }) => ({
 	days: many(dayTable),
@@ -134,7 +163,8 @@ export const tripRelations = relations(tripTable, ({ many, one }) => ({
 	}),
 	collaborators: many(tripCollaboratorTable),
 	invites: many(tripInviteTable),
-	packingItems: many(packingItemTable)
+	packingItems: many(packingItemTable),
+	travelSegments: many(travelSegmentTable)
 }));
 
 export const dayRelations = relations(dayTable, ({ one, many }) => ({
@@ -144,7 +174,11 @@ export const dayRelations = relations(dayTable, ({ one, many }) => ({
 	}),
 	activities: many(activityTable),
 	hotels: many(hotelTable),
-	flights: many(flightTable)
+	flights: many(flightTable),
+	travelSegment: one(travelSegmentTable, {
+		fields: [dayTable.id],
+		references: [travelSegmentTable.fromDayId]
+	})
 }));
 
 export const activityRelations = relations(activityTable, ({ one }) => ({
@@ -193,10 +227,22 @@ export const tripInviteRelations = relations(tripInviteTable, ({ one }) => ({
 	})
 }));
 
+export const travelSegmentRelations = relations(travelSegmentTable, ({ one }) => ({
+	trip: one(tripTable, {
+		fields: [travelSegmentTable.tripId],
+		references: [tripTable.id]
+	}),
+	fromDay: one(dayTable, {
+		fields: [travelSegmentTable.fromDayId],
+		references: [dayTable.id]
+	})
+}));
+
 export type Day = typeof dayTable.$inferSelect;
 export type Activity = typeof activityTable.$inferSelect;
 export type Hotel = typeof hotelTable.$inferSelect;
 export type Flight = typeof flightTable.$inferSelect;
+export type TravelSegment = typeof travelSegmentTable.$inferSelect;
 
 export type Trip = typeof tripTable.$inferSelect;
 export type NewTrip = typeof tripTable.$inferInsert;
@@ -217,4 +263,5 @@ export type PackingItem = typeof packingItemTable.$inferSelect;
 
 export type TripWithDays = Trip & {
 	days: DayWithActivities[];
+	travelSegments: TravelSegment[];
 };

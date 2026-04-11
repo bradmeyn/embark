@@ -4,7 +4,7 @@ import { getCurrentUser } from '$lib/remotes/auth/auth.remote';
 import { db } from '$db';
 import { dayTable, hotelTable, tripTable } from '$db/schemas/itinerary';
 import { error } from '@sveltejs/kit';
-import { and, asc, eq, gt, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, gte, sql } from 'drizzle-orm';
 import { geocodeLocation } from '$lib/server/geocode';
 import { assertTripAccess } from '$lib/server/trip-access';
 import { generateStructuredJson } from '$lib/server/ai';
@@ -271,5 +271,44 @@ export const suggestNewDayForTrip = command(
 			error(500, 'Received invalid day location suggestion. Please try again.');
 
 		return { success: true, suggestion: suggestion.data };
+	}
+);
+
+const insertDaySchema = z.object({
+	tripId: z.string().min(1),
+	atPosition: z.number().int().min(1, 'Position must be at least 1'),
+	location: z.string().min(1, 'Location is required'),
+	overview: z.string().optional()
+});
+
+export const insertDay = form(
+	insertDaySchema,
+	async ({ tripId, atPosition, location, overview }) => {
+		const user = await getCurrentUser();
+		if (!user) error(401, 'Unauthorized');
+
+		await assertTripAccess(tripId, user.id);
+
+		const coords = await geocodeLocation(location);
+
+		await db.transaction(async (tx) => {
+			// Shift all days at or after the insertion point up by 1
+			await tx
+				.update(dayTable)
+				.set({ dayNumber: sql`${dayTable.dayNumber} + 1` })
+				.where(and(eq(dayTable.tripId, tripId), gte(dayTable.dayNumber, atPosition)));
+
+			// Insert the new day at the freed position
+			await tx.insert(dayTable).values({
+				tripId,
+				dayNumber: atPosition,
+				location,
+				overview: overview ?? null,
+				latitude: coords?.lat ?? null,
+				longitude: coords?.lng ?? null
+			});
+		});
+
+		return { success: true };
 	}
 );
