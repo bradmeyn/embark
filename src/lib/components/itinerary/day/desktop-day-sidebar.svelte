@@ -18,7 +18,7 @@
 	} = $props();
 </script>
 
-<div class="flex w-52 shrink-0 flex-col border-r print:hidden">
+<div class="flex w-52 shrink-0 flex-col border-r">
 	<div class="flex-1 overflow-y-auto px-2 py-3">
 		{#each days as day, i (day.id)}
 			{@const hasNext = i < days.length - 1}

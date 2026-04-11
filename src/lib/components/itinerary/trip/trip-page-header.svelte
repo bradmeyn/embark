@@ -2,7 +2,7 @@
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
 	import AddDayDialog from '$lib/components/itinerary/day/add-day-dialog.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { Printer, PackageCheck, LayoutGrid, List } from '@lucide/svelte';
+	import { PackageCheck, LayoutGrid, List } from '@lucide/svelte';
 	import type { TripWithDays } from '$db/schemas/itinerary';
 
 	let {
@@ -18,7 +18,7 @@
 	} = $props();
 </script>
 
-<div class="flex shrink-0 items-center justify-between border-b px-4 py-3 print:hidden">
+<div class="flex shrink-0 items-center justify-between border-b px-4 py-3">
 	<Breadcrumb.Root>
 		<Breadcrumb.List>
 			<Breadcrumb.Item>
@@ -63,15 +63,6 @@
 			aria-label="Packing list"
 		>
 			<PackageCheck class="size-4" />
-		</Button>
-		<Button
-			variant="ghost"
-			size="icon"
-			class="size-8"
-			onclick={() => window.print()}
-			aria-label="Print itinerary"
-		>
-			<Printer class="size-4" />
 		</Button>
 	</div>
 </div>

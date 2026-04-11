@@ -111,45 +111,17 @@
 
 				<!-- Detail panel -->
 				<div class="flex-1 overflow-y-auto">
-					<div class="print:hidden">
-						{#if viewMode === 'overview'}
-							<DayOverviewGrid
-								days={trip.days}
-								onSelectDay={(id) => {
-									selectedDayId = id;
-									viewMode = 'detail';
-								}}
-							/>
-						{:else if selectedDay}
-							<DayDetail day={selectedDay} tripId={trip.id} {activeHotels} {outgoingSegment} />
-						{/if}
-					</div>
-					<!-- Print: show all days -->
-					<div class="hidden print:block">
-						{#each trip.days as day (day.id)}
-							{@const printActiveHotels = trip.days
-								.flatMap((d) => d.hotels)
-								.filter((hotel) => {
-									const checkInDay = trip.days.find((d) => d.id === hotel.dayId);
-									if (!checkInDay) return false;
-									const nights = hotel.nights ?? 1;
-									return (
-										day.dayNumber >= checkInDay.dayNumber &&
-										day.dayNumber < checkInDay.dayNumber + nights
-									);
-								})}
-							{@const printOutgoingSegment =
-								trip.travelSegments.find((s) => s.fromDayId === day.id) ?? null}
-							<div class="break-inside-avoid border-b last:border-0">
-								<DayDetail
-									{day}
-									tripId={trip.id}
-									activeHotels={printActiveHotels}
-									outgoingSegment={printOutgoingSegment}
-								/>
-							</div>
-						{/each}
-					</div>
+					{#if viewMode === 'overview'}
+						<DayOverviewGrid
+							days={trip.days}
+							onSelectDay={(id) => {
+								selectedDayId = id;
+								viewMode = 'detail';
+							}}
+						/>
+					{:else if selectedDay}
+						<DayDetail day={selectedDay} tripId={trip.id} {activeHotels} {outgoingSegment} />
+					{/if}
 				</div>
 			</div>
 		</div>
