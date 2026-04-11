@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { DayWithActivities, Hotel } from '$db/schemas/itinerary';
+	import type { DayWithActivities, Hotel, TravelSegment } from '$db/schemas/itinerary';
 	import { deleteDay } from '$lib/remotes/trips/day.remote';
 	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import AddActivityDialog from '../activity/add-activity-dialog.svelte';
@@ -10,20 +10,30 @@
 	import ActivityCard from '../activity/activity-card.svelte';
 	import HotelCard from '../hotel/hotel-card.svelte';
 	import FlightCard from '../flight/flight-card.svelte';
+	import AddTravelSegmentDialog from '../travel/add-travel-segment-dialog.svelte';
+	import EditTravelSegmentDialog from '../travel/edit-travel-segment-dialog.svelte';
 	import Button from '$ui/button/button.svelte';
-	import { Plus, Pencil, Trash2, Plane, Building2 } from '@lucide/svelte';
+	import { Plus, Pencil, Trash2, Plane, Building2, Route } from '@lucide/svelte';
 
 	let {
 		day,
 		tripId,
-		activeHotels = []
-	}: { day: DayWithActivities; tripId: string; activeHotels?: Hotel[] } = $props();
+		activeHotels = [],
+		outgoingSegment = null
+	}: {
+		day: DayWithActivities;
+		tripId: string;
+		activeHotels?: Hotel[];
+		outgoingSegment?: TravelSegment | null;
+	} = $props();
 
 	let addActivityOpen = $state(false);
 	let addHotelOpen = $state(false);
 	let addFlightOpen = $state(false);
 	let editDayOpen = $state(false);
 	let deleteDialogOpen = $state(false);
+	let addTravelOpen = $state(false);
+	let editTravelOpen = $state(false);
 
 	const dayCost = $derived(
 		day.activities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0) +
@@ -162,6 +172,43 @@
 		{/if}
 	</section>
 
+	<!-- Travel -->
+	<section class="space-y-2 border-t pt-4">
+		<div class="flex items-center justify-between">
+			<p class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Travel</p>
+			{#if !outgoingSegment}
+				<Button
+					variant="ghost"
+					size="sm"
+					onclick={() => (addTravelOpen = true)}
+					class="h-7 gap-1 px-2 text-xs"
+				>
+					<Plus class="size-3" />
+					Add
+				</Button>
+			{/if}
+		</div>
+		{#if outgoingSegment}
+			<button
+				onclick={() => (editTravelOpen = true)}
+				class="flex w-full items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
+			>
+				<Route class="size-4 shrink-0 text-muted-foreground" />
+				<div class="min-w-0 flex-1">
+					<p class="text-xs font-medium capitalize">{outgoingSegment.mode}</p>
+					{#if outgoingSegment.departureTime && outgoingSegment.arrivalTime}
+						<p class="text-[11px] text-muted-foreground">
+							{outgoingSegment.departureTime} → {outgoingSegment.arrivalTime}
+						</p>
+					{/if}
+				</div>
+				<Pencil class="size-3 shrink-0 text-muted-foreground" />
+			</button>
+		{:else}
+			<p class="text-[11px] text-muted-foreground">No travel recorded for this day.</p>
+		{/if}
+	</section>
+
 	<!-- Quick add flight/hotel -->
 	{#if day.flights.length === 0 || activeHotels.length === 0}
 		<div class="flex flex-wrap gap-2 border-t pt-4">
@@ -195,6 +242,15 @@
 <AddHotelDialog dayId={day.id} {tripId} bind:open={addHotelOpen} showTrigger={false} />
 <AddFlightDialog dayId={day.id} {tripId} bind:open={addFlightOpen} showTrigger={false} />
 <EditDayDialog {day} {tripId} bind:open={editDayOpen} showTrigger={false} />
+<AddTravelSegmentDialog fromDayId={day.id} {tripId} bind:open={addTravelOpen} showTrigger={false} />
+{#if outgoingSegment}
+	<EditTravelSegmentDialog
+		segment={outgoingSegment}
+		{tripId}
+		bind:open={editTravelOpen}
+		showTrigger={false}
+	/>
+{/if}
 <DeleteDialog
 	label="day"
 	onDelete={handleDeleteDay}

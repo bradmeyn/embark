@@ -41,15 +41,12 @@
 	);
 </script>
 
-<div class="group relative flex items-center px-2 py-0.5">
-	<!-- Vertical connector line -->
-	<div class="absolute top-0 left-[1.1rem] h-full w-px bg-border"></div>
-
+<div class="group flex items-center">
 	{#if segment}
 		<!-- Show existing segment as a clickable chip -->
 		<button
 			onclick={() => (editOpen = true)}
-			class="relative z-10 flex items-center gap-1.5 rounded-full border bg-background px-2 py-0.5 text-[11px] text-muted-foreground shadow-sm transition-colors hover:border-primary hover:text-primary"
+			class="flex items-center gap-1.5 rounded-full border bg-background px-2 py-0.5 text-[11px] text-muted-foreground shadow-sm transition-colors hover:border-primary hover:text-primary"
 		>
 			{#if ModeIcon}
 				<ModeIcon class="size-3" />
@@ -63,10 +60,10 @@
 
 		<EditTravelSegmentDialog {segment} {tripId} bind:open={editOpen} showTrigger={false} />
 	{:else}
-		<!-- Show a faint add button on hover -->
+		<!-- Show a faint add button on group hover -->
 		<button
 			onclick={() => (addOpen = true)}
-			class="relative z-10 flex items-center gap-1 rounded-full border border-dashed border-transparent px-2 py-0.5 text-[11px] text-transparent transition-colors group-hover:border-border group-hover:text-muted-foreground hover:!border-primary hover:!text-primary"
+			class="flex items-center gap-1 rounded-full border border-dashed border-transparent px-2 py-0.5 text-[11px] text-transparent transition-colors group-hover:border-border group-hover:text-muted-foreground hover:border-primary! hover:text-primary!"
 			aria-label="Add travel segment"
 		>
 			<Plus class="size-3" />

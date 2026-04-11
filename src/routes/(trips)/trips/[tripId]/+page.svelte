@@ -36,6 +36,10 @@
 
 	const selectedDay = $derived(trip.days.find((d) => d.id === selectedDayId) ?? null);
 
+	const outgoingSegment = $derived(
+		selectedDay ? (trip.travelSegments.find((s) => s.fromDayId === selectedDay.id) ?? null) : null
+	);
+
 	const activeHotels = $derived(
 		selectedDay
 			? trip.days
@@ -117,7 +121,7 @@
 								}}
 							/>
 						{:else if selectedDay}
-							<DayDetail day={selectedDay} tripId={trip.id} {activeHotels} />
+							<DayDetail day={selectedDay} tripId={trip.id} {activeHotels} {outgoingSegment} />
 						{/if}
 					</div>
 					<!-- Print: show all days -->
@@ -134,8 +138,15 @@
 										day.dayNumber < checkInDay.dayNumber + nights
 									);
 								})}
+							{@const printOutgoingSegment =
+								trip.travelSegments.find((s) => s.fromDayId === day.id) ?? null}
 							<div class="break-inside-avoid border-b last:border-0">
-								<DayDetail {day} tripId={trip.id} activeHotels={printActiveHotels} />
+								<DayDetail
+									{day}
+									tripId={trip.id}
+									activeHotels={printActiveHotels}
+									outgoingSegment={printOutgoingSegment}
+								/>
 							</div>
 						{/each}
 					</div>
@@ -173,7 +184,7 @@
 						}}
 					/>
 				{:else if selectedDay}
-					<DayDetail day={selectedDay} tripId={trip.id} {activeHotels} />
+					<DayDetail day={selectedDay} tripId={trip.id} {activeHotels} {outgoingSegment} />
 				{/if}
 			</div>
 		</div>
