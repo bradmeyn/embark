@@ -1,6 +1,5 @@
 <script lang="ts">
 	import DayListItem from '$lib/components/itinerary/day/day-list-item.svelte';
-	import { Plus } from '@lucide/svelte';
 	import type { DayWithActivities, TravelSegment } from '$db/schemas/itinerary';
 
 	let {
@@ -8,15 +7,13 @@
 		travelSegments,
 		tripId,
 		selectedDayId,
-		onSelectDay,
-		onInsertDay
+		onSelectDay
 	}: {
 		days: DayWithActivities[];
 		travelSegments: TravelSegment[];
 		tripId: string;
 		selectedDayId: string | null;
 		onSelectDay: (id: string) => void;
-		onInsertDay: (atPosition: number) => void;
 	} = $props();
 </script>
 
@@ -25,7 +22,6 @@
 		{#each days as day, i (day.id)}
 			{@const hasNext = i < days.length - 1}
 			{@const outgoingSegment = travelSegments.find((s) => s.fromDayId === day.id) ?? null}
-			{@const nextDay = hasNext ? days[i + 1] : null}
 
 			<div class="flex gap-2">
 				<!-- Timeline column: numbered dot + connecting line -->
@@ -48,19 +44,6 @@
 					<button onclick={() => onSelectDay(day.id)} class="w-full text-left">
 						<DayListItem {day} active={selectedDayId === day.id} {outgoingSegment} />
 					</button>
-
-					{#if hasNext && nextDay}
-						<div class="group mt-0.5 flex justify-end">
-							<button
-								onclick={() => onInsertDay(nextDay.dayNumber)}
-								class="flex size-5 items-center justify-center rounded-full border border-dashed border-transparent text-transparent transition-colors group-hover:border-border group-hover:text-muted-foreground hover:border-primary! hover:text-primary!"
-								aria-label="Insert day"
-								title="Insert day here"
-							>
-								<Plus class="size-3" />
-							</button>
-						</div>
-					{/if}
 				</div>
 			</div>
 		{/each}

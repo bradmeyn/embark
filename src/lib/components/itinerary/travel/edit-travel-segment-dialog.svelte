@@ -9,6 +9,7 @@
 		deleteTravelSegment,
 		refreshCarRoute
 	} from '$lib/remotes/trips/travel-segment.remote';
+	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import type { TravelSegment } from '$db/schemas/itinerary';
 	import {
 		Car,

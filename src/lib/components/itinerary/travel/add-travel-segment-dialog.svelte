@@ -5,6 +5,7 @@
 	import * as Field from '$ui/field';
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import { addTravelSegment } from '$lib/remotes/trips/travel-segment.remote';
+	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import { Car, TrainFront, Bus, Ship, Bike, PersonStanding, HelpCircle } from '@lucide/svelte';
 
 	let {

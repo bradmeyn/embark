@@ -2,20 +2,15 @@
 	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import { page } from '$app/state';
 	import GetStarted from '$lib/components/itinerary/day/get-started.svelte';
-	import InsertDayDialog from '$lib/components/itinerary/day/insert-day-dialog.svelte';
 	import DayDetail from '$lib/components/itinerary/day/day-detail.svelte';
 	import { groupLocationsByConsecutive } from '$lib/utils';
-	import PackingListDialog from '$lib/components/itinerary/trip/packing-list-dialog.svelte';
 	import DayOverviewGrid from '$lib/components/itinerary/day/day-overview-grid.svelte';
 	import TripPageHeader from '$lib/components/itinerary/trip/trip-page-header.svelte';
 	import TripSummaryCard from '$lib/components/itinerary/trip/trip-summary-card.svelte';
 	import DesktopDaySidebar from '$lib/components/itinerary/day/desktop-day-sidebar.svelte';
 	import MobileDaySelector from '$lib/components/itinerary/day/mobile-day-selector.svelte';
 
-	let packingOpen = $state(false);
 	let viewMode = $state<'detail' | 'overview'>('detail');
-	let insertAtPosition = $state(1);
-	let insertOpen = $state(false);
 
 	const trip = $derived(await getTrip(page.params.tripId!));
 	const nextDayNumber = $derived(
@@ -62,15 +57,7 @@
 </script>
 
 <div class="flex h-full flex-col bg-background">
-	<TripPageHeader {trip} {nextDayNumber} bind:viewMode bind:packingOpen />
-
-	<PackingListDialog tripId={trip.id} bind:open={packingOpen} showTrigger={false} />
-	<InsertDayDialog
-		tripId={trip.id}
-		atPosition={insertAtPosition}
-		bind:open={insertOpen}
-		showTrigger={false}
-	/>
+	<TripPageHeader {trip} {nextDayNumber} bind:viewMode />
 
 	{#if trip.days.length === 0}
 		<div class="flex-1 overflow-y-auto p-6">
@@ -97,10 +84,6 @@
 					tripId={trip.id}
 					selectedDayId={selectedDay?.id ?? null}
 					onSelectDay={(id) => (selectedDayId = id)}
-					onInsertDay={(pos) => {
-						insertAtPosition = pos;
-						insertOpen = true;
-					}}
 				/>
 
 				<!-- Detail panel -->
@@ -135,10 +118,6 @@
 				days={trip.days}
 				selectedDayId={selectedDay?.id ?? null}
 				onSelectDay={(id) => (selectedDayId = id)}
-				onInsertDay={(pos) => {
-					insertAtPosition = pos;
-					insertOpen = true;
-				}}
 			/>
 
 			<div class="flex-1 overflow-y-auto">

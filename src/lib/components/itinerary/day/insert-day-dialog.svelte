@@ -4,8 +4,8 @@
 	import Input from '$ui/input/input.svelte';
 	import * as Field from '$ui/field';
 	import Spinner from '$ui/spinner/spinner.svelte';
-	import { insertDay } from '$lib/remotes/trips/day.remote';
-	import { suggestNewDayForTrip } from '$lib/remotes/trips/day.remote';
+	import { insertDay, suggestNewDayForTrip } from '$lib/remotes/trips/day.remote';
+	import { getTrip } from '$lib/remotes/trips/trip.remote';
 	import { Sparkles } from '@lucide/svelte';
 
 	let {
