@@ -7,10 +7,12 @@
 	let {
 		days,
 		travelSegments = [],
+		interactive = true,
 		class: className = 'h-[600px] '
 	}: {
 		days: DayWithActivities[];
 		travelSegments?: TravelSegment[];
+		interactive?: boolean;
 		class?: string;
 	} = $props();
 
@@ -57,8 +59,14 @@
 		map = new maplibre.Map({
 			container: mapContainer,
 			style: 'https://tiles.openfreemap.org/styles/liberty',
-			zoom: 10
+			zoom: 10,
+			interactive,
+			attributionControl: false
 		});
+
+		if (interactive) {
+			map.addControl(new maplibre.AttributionControl({ compact: true }));
+		}
 
 		map.on('load', () => {
 			if (!map) return;
@@ -145,8 +153,10 @@
 				});
 			}
 
-			// Fit bounds
-			if (geocodedGroups.length >= 2) {
+			// Fit bounds (thumbnail: just centre on first location)
+			if (!interactive) {
+				map.jumpTo({ center: [geocodedGroups[0].lng, geocodedGroups[0].lat], zoom: 11 });
+			} else if (geocodedGroups.length >= 2) {
 				const lngs = geocodedGroups.map((g) => g.lng);
 				const lats = geocodedGroups.map((g) => g.lat);
 				map.fitBounds(
@@ -154,11 +164,10 @@
 						[Math.min(...lngs), Math.min(...lats)],
 						[Math.max(...lngs), Math.max(...lats)]
 					],
-					{ padding: 60, maxZoom: 12 }
+					{ padding: 60, maxZoom: 12, animate: false }
 				);
 			} else {
-				map.setCenter([geocodedGroups[0].lng, geocodedGroups[0].lat]);
-				map.setZoom(10);
+				map.jumpTo({ center: [geocodedGroups[0].lng, geocodedGroups[0].lat], zoom: 10 });
 			}
 		});
 	});

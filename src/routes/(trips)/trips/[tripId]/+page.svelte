@@ -65,28 +65,26 @@
 		</div>
 	{:else}
 		<!-- ── DESKTOP (lg+) ─────────────────────────────────────────── -->
-		<div class="hidden h-full flex-col overflow-hidden lg:flex">
-			<div class="shrink-0 p-4">
-				<TripSummaryCard
-					days={trip.days}
-					travelSegments={trip.travelSegments}
-					{locationGroups}
-					{tripTotal}
-					mapClass="h-60 rounded-lg"
-					showStats
-				/>
-			</div>
+		<div class="hidden h-full overflow-hidden lg:flex">
+			<DesktopDaySidebar
+				days={trip.days}
+				travelSegments={trip.travelSegments}
+				tripId={trip.id}
+				selectedDayId={selectedDay?.id ?? null}
+				onSelectDay={(id) => (selectedDayId = id)}
+			/>
 
-			<div class="flex flex-1 overflow-hidden">
-				<DesktopDaySidebar
-					days={trip.days}
-					travelSegments={trip.travelSegments}
-					tripId={trip.id}
-					selectedDayId={selectedDay?.id ?? null}
-					onSelectDay={(id) => (selectedDayId = id)}
-				/>
+			<!-- Detail panel -->
+			<div class="flex flex-1 flex-col overflow-hidden">
+				<div class="shrink-0 p-4 pb-0">
+					<TripSummaryCard
+						{locationGroups}
+						{tripTotal}
+						dayCount={trip.days.length}
+						showStats
+					/>
+				</div>
 
-				<!-- Detail panel -->
 				<div class="flex-1 overflow-y-auto">
 					{#if viewMode === 'overview'}
 						<DayOverviewGrid
@@ -106,12 +104,7 @@
 		<!-- ── MOBILE (< lg) ─────────────────────────────────────────── -->
 		<div class="flex flex-1 flex-col overflow-hidden lg:hidden">
 			<div class="shrink-0 border-b bg-muted/30 p-3">
-				<TripSummaryCard
-					days={trip.days}
-					travelSegments={trip.travelSegments}
-					{locationGroups}
-					mapClass="h-36 rounded-lg"
-				/>
+				<TripSummaryCard {locationGroups} />
 			</div>
 
 			<MobileDaySelector
