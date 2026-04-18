@@ -1,8 +1,6 @@
 <script lang="ts">
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
 	import AddDayDialog from '$lib/components/itinerary/day/add-day-dialog.svelte';
-	import Button from '$lib/components/ui/button/button.svelte';
-	import { LayoutGrid, List } from '@lucide/svelte';
 	import type { TripWithDays } from '$db/schemas/itinerary';
 
 	let {
@@ -29,29 +27,7 @@
 		</Breadcrumb.List>
 	</Breadcrumb.Root>
 
-	<div class="flex items-center gap-2">
-		{#if trip.days.length > 0}
-			<span class="hidden text-sm text-muted-foreground sm:block">
-				{trip.days.length}
-				{trip.days.length === 1 ? 'day' : 'days'} planned
-			</span>
-			<AddDayDialog tripId={trip.id} {nextDayNumber} />
-		{/if}
-		{#if trip.days.length > 0}
-			<Button
-				variant="ghost"
-				size="icon"
-				class="size-8"
-				onclick={() => (viewMode = viewMode === 'overview' ? 'detail' : 'overview')}
-				aria-label={viewMode === 'overview' ? 'Day detail view' : 'Overview grid'}
-				title={viewMode === 'overview' ? 'Day detail view' : 'Overview grid'}
-			>
-				{#if viewMode === 'overview'}
-					<List class="size-4" />
-				{:else}
-					<LayoutGrid class="size-4" />
-				{/if}
-			</Button>
-		{/if}
-	</div>
+	{#if trip.days.length > 0}
+		<AddDayDialog tripId={trip.id} {nextDayNumber} days={trip.days} />
+	{/if}
 </div>

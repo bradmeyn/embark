@@ -5,9 +5,13 @@
 	import * as Field from '$ui/field';
 	import { editDay, suggestDayOverview } from '$lib/remotes/trips/day.remote';
 	import { getTrip } from '$lib/remotes/trips/trip.remote';
+	import { getCurrentUser } from '$lib/remotes/auth/auth.remote';
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import type { Day } from '$db/schemas/itinerary';
 	import { Sparkles } from '@lucide/svelte';
+
+	const user = $derived(await getCurrentUser());
+	const isPro = $derived(user?.plan === 'pro');
 
 	let {
 		day,
@@ -57,25 +61,27 @@
 		>
 			<input type="hidden" name="id" value={day.id} />
 
-			<div class="flex justify-end">
-				<Button
-					type="button"
-					variant="outline"
-					size="sm"
-					onclick={async () => {
-						const result = await suggestDayOverview({ dayId: day.id });
-						suggestion = result.suggestion;
-					}}
-					disabled={!!suggestDayOverview.pending}
-				>
-					{#if suggestDayOverview.pending}
-						<Spinner class="size-4" />
-					{:else}
-						<Sparkles class="size-3.5" />
-						Suggest with AI
-					{/if}
-				</Button>
-			</div>
+			{#if isPro}
+				<div class="flex justify-end">
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onclick={async () => {
+							const result = await suggestDayOverview({ dayId: day.id });
+							suggestion = result.suggestion;
+						}}
+						disabled={!!suggestDayOverview.pending}
+					>
+						{#if suggestDayOverview.pending}
+							<Spinner class="size-4" />
+						{:else}
+							<Sparkles class="size-3.5" />
+							Suggest with AI
+						{/if}
+					</Button>
+				</div>
+			{/if}
 
 			<Field.Field>
 				<Field.Label for="location">Location</Field.Label>

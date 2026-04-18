@@ -24,9 +24,7 @@
 
 	const selectedDay = $derived(trip.days.find((d) => d.id === selectedDayId) ?? null);
 
-	const mapKey = $derived(
-		trip.days.map((d) => `${d.id}:${d.latitude}:${d.longitude}`).join(',')
-	);
+	const mapKey = $derived(trip.days.map((d) => `${d.id}:${d.latitude}:${d.longitude}`).join(','));
 </script>
 
 <svelte:head>
@@ -63,7 +61,7 @@
 							{/key}
 						</div>
 					{/if}
-					<div class="flex items-center gap-2 overflow-x-auto p-3 scrollbar-none">
+					<div class="scrollbar-none flex items-center gap-2 overflow-x-auto p-3">
 						{#each locationGroups as group, i (group.startDay)}
 							<div class="flex shrink-0 items-center gap-2">
 								<span
@@ -123,7 +121,7 @@
 							{/key}
 						</div>
 					{/if}
-					<div class="flex gap-3 overflow-x-auto p-3 scrollbar-none">
+					<div class="scrollbar-none flex gap-3 overflow-x-auto p-3">
 						{#each locationGroups as group, i (group.startDay)}
 							<div class="flex shrink-0 items-center gap-2">
 								<span
@@ -149,7 +147,7 @@
 
 			<!-- Day chip selector -->
 			<div class="shrink-0 border-b bg-background">
-				<div class="flex gap-2 overflow-x-auto px-3 py-2 scrollbar-none">
+				<div class="scrollbar-none flex gap-2 overflow-x-auto px-3 py-2">
 					{#each trip.days as day (day.id)}
 						<button
 							onclick={() => (selectedDayId = day.id)}
@@ -159,7 +157,7 @@
 								: 'border-transparent bg-muted/50 hover:bg-muted'}"
 						>
 							<span class="text-xs font-semibold text-primary">Day {day.dayNumber}</span>
-							<span class="max-w-[96px] truncate font-serif text-sm">{day.location}</span>
+							<span class="max-w-24 truncate font-serif text-sm">{day.location}</span>
 						</button>
 					{/each}
 				</div>

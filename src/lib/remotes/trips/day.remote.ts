@@ -7,6 +7,7 @@ import { error } from '@sveltejs/kit';
 import { and, asc, eq, gt, gte, sql } from 'drizzle-orm';
 import { geocodeLocation } from '$lib/server/geocode';
 import { assertTripAccess } from '$lib/server/trip-access';
+import { assertProAccess } from '$lib/server/subscription';
 import { generateStructuredJson } from '$lib/server/ai';
 
 const daySchema = z.object({
@@ -169,6 +170,7 @@ export const suggestDayOverview = command(
 	async ({ dayId, userPrompt }) => {
 		const user = await getCurrentUser();
 		if (!user) error(401, 'Unauthorized');
+		assertProAccess(user);
 
 		const day = await db.query.dayTable.findFirst({ where: eq(dayTable.id, dayId) });
 		if (!day) error(404, 'Day not found');
@@ -227,6 +229,7 @@ export const suggestNewDayForTrip = command(
 	async ({ tripId, dayNumber, userPrompt }) => {
 		const user = await getCurrentUser();
 		if (!user) error(401, 'Unauthorized');
+		assertProAccess(user);
 
 		await assertTripAccess(tripId, user.id);
 

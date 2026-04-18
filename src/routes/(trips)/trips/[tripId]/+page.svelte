@@ -9,7 +9,8 @@
 	import TripSummaryCard from '$lib/components/itinerary/trip/trip-summary-card.svelte';
 	import DesktopDaySidebar from '$lib/components/itinerary/day/desktop-day-sidebar.svelte';
 	import MobileDaySelector from '$lib/components/itinerary/day/mobile-day-selector.svelte';
-
+	import Button from '$lib/components/ui/button/button.svelte';
+	import { LayoutGrid, List } from '@lucide/svelte';
 	let viewMode = $state<'detail' | 'overview'>('detail');
 
 	const trip = $derived(await getTrip(page.params.tripId!));
@@ -69,7 +70,6 @@
 			<DesktopDaySidebar
 				days={trip.days}
 				travelSegments={trip.travelSegments}
-				tripId={trip.id}
 				selectedDayId={selectedDay?.id ?? null}
 				onSelectDay={(id) => (selectedDayId = id)}
 			/>
@@ -77,12 +77,32 @@
 			<!-- Detail panel -->
 			<div class="flex flex-1 flex-col overflow-hidden">
 				<div class="shrink-0 p-4 pb-0">
-					<TripSummaryCard
-						{locationGroups}
-						{tripTotal}
-						dayCount={trip.days.length}
-						showStats
-					/>
+					<div class="mb-4 flex items-start justify-between gap-4">
+						<div>
+							<h2 class="font-serif text-xl font-light">Trip Overview</h2>
+							<p class="text-sm text-muted-foreground">
+								{trip.days.length}
+								{trip.days.length === 1 ? 'day' : 'days'} planned
+							</p>
+						</div>
+						{#if trip.days.length > 0}
+							<Button
+								variant="ghost"
+								size="icon"
+								class="size-8"
+								onclick={() => (viewMode = viewMode === 'overview' ? 'detail' : 'overview')}
+								aria-label={viewMode === 'overview' ? 'Day detail view' : 'Overview grid'}
+								title={viewMode === 'overview' ? 'Day detail view' : 'Overview grid'}
+							>
+								{#if viewMode === 'overview'}
+									<List class="size-4" />
+								{:else}
+									<LayoutGrid class="size-4" />
+								{/if}
+							</Button>
+						{/if}
+					</div>
+					<TripSummaryCard {locationGroups} {tripTotal} dayCount={trip.days.length} showStats />
 				</div>
 
 				<div class="flex-1 overflow-y-auto">
@@ -103,6 +123,13 @@
 
 		<!-- ── MOBILE (< lg) ─────────────────────────────────────────── -->
 		<div class="flex flex-1 flex-col overflow-hidden lg:hidden">
+			<div class="p-3 pb-0">
+				<h2 class="font-serif text-xl font-light">Trip Overview</h2>
+				<p class="text-sm text-muted-foreground">
+					{trip.days.length}
+					{trip.days.length === 1 ? 'day' : 'days'} planned
+				</p>
+			</div>
 			<div class="shrink-0 border-b bg-muted/30 p-3">
 				<TripSummaryCard {locationGroups} />
 			</div>

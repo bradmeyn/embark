@@ -5,8 +5,12 @@
 	import * as Field from '$ui/field';
 	import { addActivity, suggestActivityForDay } from '$lib/remotes/trips/activity.remote';
 	import { getTrip } from '$lib/remotes/trips/trip.remote';
+	import { getCurrentUser } from '$lib/remotes/auth/auth.remote';
 	import Spinner from '$ui/spinner/spinner.svelte';
 	import { Plus, Sparkles } from '@lucide/svelte';
+
+	const user = $derived(await getCurrentUser());
+	const isPro = $derived(user?.plan === 'pro');
 
 	let {
 		dayId,
@@ -63,25 +67,27 @@
 			})}
 			class="space-y-3"
 		>
-			<div class="flex justify-end">
-				<Button
-					type="button"
-					variant="outline"
-					size="sm"
-					onclick={async () => {
-						const result = await suggestActivityForDay({ dayId });
-						suggestion = result.suggestion;
-					}}
-					disabled={!!suggestActivityForDay.pending}
-				>
-					{#if suggestActivityForDay.pending}
-						<Spinner class="size-4" />
-					{:else}
-						<Sparkles class="size-3.5" />
-						Suggest with AI
-					{/if}
-				</Button>
-			</div>
+			{#if isPro}
+				<div class="flex justify-end">
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onclick={async () => {
+							const result = await suggestActivityForDay({ dayId });
+							suggestion = result.suggestion;
+						}}
+						disabled={!!suggestActivityForDay.pending}
+					>
+						{#if suggestActivityForDay.pending}
+							<Spinner class="size-4" />
+						{:else}
+							<Sparkles class="size-3.5" />
+							Suggest with AI
+						{/if}
+					</Button>
+				</div>
+			{/if}
 
 			<Field.Field>
 				<Field.Label for="name">Name</Field.Label>

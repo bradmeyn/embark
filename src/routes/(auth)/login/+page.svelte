@@ -5,6 +5,9 @@
 	import * as Field from '$lib/components/ui/field';
 	import { Input } from '$lib/components/ui/input';
 	import { loginUser } from '$lib/remotes/auth/auth.remote';
+	import { page } from '$app/state';
+
+	const resetSuccess = $derived(page.url.searchParams.get('reset') === 'success');
 </script>
 
 <div class="flex h-screen">
@@ -30,6 +33,12 @@
 				<h1 class="font-serif text-3xl text-foreground">Welcome back</h1>
 				<p class="text-muted-foreground">Sign in to continue planning</p>
 			</div>
+
+			{#if resetSuccess}
+				<div class="rounded-lg bg-green-50 p-3 text-center text-sm text-green-700 dark:bg-green-950/30 dark:text-green-400">
+					Password reset successfully. Sign in with your new password.
+				</div>
+			{/if}
 
 			<!-- Form -->
 			<form {...loginUser} class="space-y-4">

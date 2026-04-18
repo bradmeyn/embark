@@ -6,6 +6,7 @@ import { activityTable, dayTable } from '$db/schemas/itinerary';
 import { eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import { assertTripAccess } from '$lib/server/trip-access';
+import { assertProAccess } from '$lib/server/subscription';
 import { generateStructuredJson } from '$lib/server/ai';
 
 const activitySchema = z.object({
@@ -159,6 +160,7 @@ export const suggestActivityForDay = command(
 	async ({ dayId, userPrompt }) => {
 		const user = await getCurrentUser();
 		if (!user) error(401, 'Unauthorized');
+		assertProAccess(user);
 
 		const day = await db.query.dayTable.findFirst({ where: eq(dayTable.id, dayId) });
 		if (!day) error(404, 'Day not found');

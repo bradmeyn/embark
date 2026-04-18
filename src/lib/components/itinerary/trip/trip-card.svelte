@@ -13,6 +13,7 @@
 	} = $props();
 
 	const locations = $derived(groupLocationsByConsecutive(trip.days));
+
 </script>
 
 <div class="relative rounded-xl">

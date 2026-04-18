@@ -114,7 +114,7 @@
 						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 							{#each sharedTrips as trip, i (trip.id)}
 								<div class="fade-up" style={`--stagger: ${i + 4};`}>
-									<TripCard {trip} readonly={false} />
+									<TripCard {trip} readonly={true} />
 								</div>
 							{/each}
 						</div>

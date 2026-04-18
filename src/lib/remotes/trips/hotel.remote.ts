@@ -6,6 +6,7 @@ import { hotelTable, dayTable } from '$db/schemas/itinerary';
 import { asc, eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import { assertTripAccess } from '$lib/server/trip-access';
+import { assertProAccess } from '$lib/server/subscription';
 import { generateStructuredJson } from '$lib/server/ai';
 
 function getMaxNightsForDay(
@@ -184,6 +185,7 @@ const suggestionHotelPayloadSchema = z.object({
 export const suggestHotelForDay = command(suggestHotelSchema, async ({ dayId, userPrompt }) => {
 	const user = await getCurrentUser();
 	if (!user) error(401, 'Unauthorized');
+	assertProAccess(user);
 
 	const day = await db.query.dayTable.findFirst({ where: eq(dayTable.id, dayId) });
 	if (!day) error(404, 'Day not found');

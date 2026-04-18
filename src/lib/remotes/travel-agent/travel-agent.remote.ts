@@ -6,6 +6,7 @@ import { activityTable, dayTable, hotelTable, tripTable } from '$db/schemas/itin
 import { getCurrentUser } from '$lib/remotes/auth/auth.remote';
 import { geocodeLocation } from '$lib/server/geocode';
 import { generateStructuredJson } from '$lib/server/ai';
+import { assertProAccess } from '$lib/server/subscription';
 
 const tripAgentInputSchema = z.object({
 	destinations: z.string().min(1, 'At least one destination is required'),
@@ -85,9 +86,8 @@ const getMaxNightsForDraftDay = (days: Array<{ location: string }>, startIndex: 
 
 async function getAuthedUser() {
 	const user = await getCurrentUser();
-	if (!user) {
-		error(401, 'Unauthorized');
-	}
+	if (!user) error(401, 'Unauthorized');
+	assertProAccess(user);
 	return user;
 }
 
